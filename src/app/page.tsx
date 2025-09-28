@@ -1,9 +1,10 @@
-
+import Hero from "../components/hero";
 
 export default function HomePage() {
   return (
-    <section className="p-8">
+    <main>
+      <Hero />
       <h1 className="text-2xl font-bold">Homepage</h1>
-    </section>
+    </main>
   );
 }
