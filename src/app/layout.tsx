@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "../components/navbar"; 
+import Footer from "../components/footer";
 
 export const metadata: Metadata = {
   title: "STAYFINDER",
@@ -17,7 +18,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow">{children}</main>
-        {/* <Footer /> */}
+        <Footer />
       </body>
     </html>
   );
