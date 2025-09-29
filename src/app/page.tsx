@@ -1,5 +1,6 @@
 import BookingFilter from "../components/bokingFilters";
 import Hero from "../components/hero";
+import PropertyList from "../components/propertyList";
 
 
 export default function HomePage() {
@@ -7,6 +8,7 @@ export default function HomePage() {
     <main>
       <Hero />
       <BookingFilter />
+      <PropertyList />
     </main>
   );
 }

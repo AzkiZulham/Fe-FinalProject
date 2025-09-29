@@ -1,5 +1,9 @@
 @import "tailwindcss";
 @import "keen-slider/keen-slider.min.css";
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
+
 
 :root {
   --background: #ffffff;
