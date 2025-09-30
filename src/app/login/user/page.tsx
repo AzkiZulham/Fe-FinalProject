@@ -1,0 +1,32 @@
+import Image from "next/image";
+import LoginForm from "../../../components/loginForm";
+
+export const metadata = {
+  title: "Login User — StayFinder",
+  description: "Masuk sebagai user untuk mengelola preferensi dan pemesanan di StayFinder.",
+};
+
+export default function UserLoginPage() {
+ return (
+  <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="w-full max-w-md">
+          {/* Logo & Heading */}
+          <div className="text-center mb-8">
+            <Image
+              src="/logo.png"
+              alt="StayFinder Logo"
+              width={300}
+              height={300}
+              className="mx-auto mb-4"
+            />
+            <p className="text-md text-gray-500 mt-2">
+            Akses akun user untuk melihat transaksi dan preferensi.
+            </p>
+          </div>
+
+          {/* Form */}
+          <LoginForm role="user" redirectOnSuccess="/user/dashboard" />
+        </div>
+    </main>
+  );
+}
