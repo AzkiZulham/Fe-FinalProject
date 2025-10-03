@@ -134,7 +134,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    // <ProtectedPage role="user">
+    <ProtectedPage role="user">
       <main className="min-h-screen bg-gray-50 pb-25">
         {/* Header Profile */}
         <section className="bg-gradient-to-r from-[#2f567a] to-[#3a6b97] text-white py-12">
@@ -283,6 +283,6 @@ export default function UserProfilePage() {
           </Tabs>
         </section>
       </main>
-    // </ProtectedPage>
+    </ProtectedPage>
   )
 }
