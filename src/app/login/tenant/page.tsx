@@ -1,4 +1,3 @@
-// app/login/tenant/page.tsx
 import Image from "next/image";
 import LoginForm from "../../../components/loginForm";
 
@@ -27,7 +26,7 @@ export default function TenantLoginPage() {
         </div>
 
         {/* Form */}
-        <LoginForm role="tenant" redirectOnSuccess="/tenant/dashboard" />
+        <LoginForm role="TENANT" redirectOnSuccess="/tenant/dashboard" />
       </div>
     </main>
   );

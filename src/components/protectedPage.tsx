@@ -1,34 +1,29 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { useAuth } from "@/src/context/authContext";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../context/authContext";
+import { useEffect } from "react";
 
 type Props = {
-  children: ReactNode;
-  role?: "user" | "tenant"; // opsional: kalau halaman khusus role
+  role?: "USER" | "TENANT";
+  children: React.ReactNode;
 };
 
-export default function ProtectedPage({ children, role }: Props) {
-  const { user } = useAuth();
+export default function ProtectedPage({ role, children }: Props) {
+  const { user, initialized } = useAuth();
   const router = useRouter();
+//
+useEffect(() => {
+  if (!initialized) return;
 
-  useEffect(() => {
-    if (!user) {
-      // belum login → redirect home
-      router.replace("/");
-    } else if (!user.verified) {
-      // belum verifikasi → redirect home
-      router.replace("/");
-    } else if (role && user.role !== role) {
-      // role salah → redirect 403
-      router.replace("/403");
-    }
-  }, [user, role, router]);
-
-  if (!user || !user.verified || (role && user.role !== role)) {
-    return null; // jangan render apapun sebelum cek selesai
+  if (!user) {
+    router.replace("/"); // belum login → ke home/login
+  } else if (role && user.role !== role) {
+    router.replace("/403"); // login tapi role salah
   }
+}, [user, role, router, initialized]);
 
-  return <>{children}</>;
+if (!initialized || !user) return null; // tunggu context siap
+
+return <>{children}</>;
 }

@@ -1,4 +1,3 @@
-// app/login/components/LoginForm.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -9,7 +8,7 @@ import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
 
 type Props = {
-  role: "user" | "tenant";
+  role: "USER" | "TENANT";
   redirectOnSuccess?: string; // optional override
 };
 
@@ -66,7 +65,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
       // Login successful
       const destination =
         redirectOnSuccess ||
-        (role === "tenant" ? "/tenant/dashboard" : "/user/profile");
+        (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
 
       router.push(destination);
     } catch (err: unknown) {
@@ -79,7 +78,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
     <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 shadow-xl rounded-4xl p-6 sm:p-8">
       <header className="text-center mb-6">
         <h1 className="text-2xl font-bold text-[#2f567a] dark:text-white">
-          Masuk sebagai {role === "tenant" ? "Tenant" : "User"}
+          Masuk sebagai {role === "TENANT" ? "TENANT" : "USER"}
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
           Masukkan email dan password akunmu untuk melanjutkan.
@@ -223,7 +222,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
       <footer className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
         Belum punya akun?{" "}
         <a
-          href={role === "tenant" ? "/register/tenant" : "/register/user"}
+          href={role === "TENANT" ? "/register/tenant" : "/register/user"}
           className="font-semibold text-[#2f567a] hover:underline"
         >
           Daftar

@@ -1,140 +1,154 @@
-"use client"
+"use client";
 
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import ProtectedPage from "@/src/components/protectedPage"
-import { Mail, Loader2 } from "lucide-react"
-import { toast } from "sonner"
+} from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import ProtectedPage from "@/src/components/protectedPage";
+import { Mail, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/src/context/authContext";
 
 export default function UserProfilePage() {
-  const [avatar, setAvatar] = useState("/default-avatar.png")
-  const [error, setError] = useState("")
-  const [isVerified, setIsVerified] = useState(false)
-  const [email, setEmail] = useState("user@example.com")
+  const { user } = useAuth();
 
-  // Loading states
-  const [isUpdatingData, setIsUpdatingData] = useState(false)
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
-  const [isResending, setIsResending] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
+  const [avatar, setAvatar] = useState("/default-avatar.png");
+  const [email, setEmail] = useState(user?.email || "");
+  const [isVerified, setIsVerified] = useState(user?.verified || false);
+  const [error, setError] = useState("");
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUpdatingData, setIsUpdatingData] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  // Sync email & verified dari user context
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email || "");
+      setIsVerified(user.verified);
+    }
+  }, [user]);
 
   // Upload avatar
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const allowedExtensions = ["image/jpeg", "image/jpg", "image/png", "image/gif"]
+    const allowedExtensions = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
     if (!allowedExtensions.includes(file.type)) {
-      setError("Format file tidak didukung")
-      toast.error("Format file harus .jpg, .jpeg, .png, atau .gif")
-      return
+      setError("Format file tidak didukung");
+      toast.error("Format file harus .jpg, .jpeg, .png, atau .gif");
+      return;
     }
 
     if (file.size > 1024 * 1024) {
-      setError("Ukuran file maksimal 1MB")
-      toast.error("Ukuran file maksimal 1MB")
-      return
+      setError("Ukuran file maksimal 1MB");
+      toast.error("Ukuran file maksimal 1MB");
+      return;
     }
 
-    setError("")
-    setIsUploading(true)
+    setError("");
+    setIsUploading(true);
     try {
-      const formData = new FormData()
-      formData.append("avatar", file)
+      const formData = new FormData();
+      formData.append("avatar", file);
 
       const res = await fetch("/api/user/upload-avatar", {
         method: "POST",
         body: formData,
-      })
+      });
 
-      if (!res.ok) throw new Error("Gagal upload foto")
+      if (!res.ok) throw new Error("Gagal upload foto");
 
-      const data = await res.json()
-      setAvatar(data.url || URL.createObjectURL(file))
-      toast.success("Foto profil berhasil diperbarui")
+      const data = await res.json();
+      setAvatar(data.url || URL.createObjectURL(file));
+      toast.success("Foto profil berhasil diperbarui");
     } catch {
-      toast.error("Terjadi kesalahan saat upload foto")
+      toast.error("Terjadi kesalahan saat upload foto");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
-
-  // Email change
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value)
-    setIsVerified(false) // email baru harus diverifikasi
-  }
-
-  // Resend verification
-  const handleResendVerification = async () => {
-    setIsResending(true)
-    try {
-      const res = await fetch("/api/user/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
-      if (!res.ok) throw new Error("Gagal kirim email verifikasi")
-
-      toast.success(`Email verifikasi dikirim ke ${email}`)
-    } catch {
-      toast.error("Gagal mengirim ulang email verifikasi")
-    } finally {
-      setIsResending(false)
-    }
-  }
+  };
 
   // Update personal data
   const handleUpdateData = async () => {
-    setIsUpdatingData(true)
+    setIsUpdatingData(true);
     try {
       const res = await fetch("/api/user/update-profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
-      if (!res.ok) throw new Error("Gagal update data")
+      });
+      if (!res.ok) throw new Error("Gagal update data");
 
-      toast.success("Informasi personal berhasil diperbarui")
+      toast.success("Informasi personal berhasil diperbarui");
     } catch {
-      toast.error("Gagal memperbarui informasi personal")
+      toast.error("Gagal memperbarui informasi personal");
     } finally {
-      setIsUpdatingData(false)
+      setIsUpdatingData(false);
     }
-  }
+  };
 
   // Update password
   const handleUpdatePassword = async () => {
-    setIsUpdatingPassword(true)
+    if (password !== confirmPassword) {
+      toast.error("Password dan konfirmasi password tidak sama");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
     try {
       const res = await fetch("/api/user/update-password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: "new-password" }),
-      })
-      if (!res.ok) throw new Error("Gagal update password")
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) throw new Error("Gagal update password");
 
-      toast.success("Password baru berhasil disimpan")
+      toast.success("Password baru berhasil disimpan");
+      setPassword("");
+      setConfirmPassword("");
     } catch {
-      toast.error("Gagal memperbarui password")
+      toast.error("Gagal memperbarui password");
     } finally {
-      setIsUpdatingPassword(false)
+      setIsUpdatingPassword(false);
     }
-  }
+  };
+
+  // Resend verification email
+  const handleResendVerification = async () => {
+    setIsResending(true);
+    try {
+      const res = await fetch("/api/user/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error("Gagal kirim email verifikasi");
+
+      toast.success(`Email verifikasi dikirim ke ${email}`);
+    } catch {
+      toast.error("Gagal mengirim ulang email verifikasi");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
-    <ProtectedPage role="user">
+    <ProtectedPage role="USER">
       <main className="min-h-screen bg-gray-50 pb-25">
         {/* Header Profile */}
         <section className="bg-gradient-to-r from-[#2f567a] to-[#3a6b97] text-white py-12">
@@ -201,24 +215,15 @@ export default function UserProfilePage() {
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="fullname">Nama Lengkap</Label>
-                      <Input id="fullname" placeholder="Azki Zulham" />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Nomor Telepon</Label>
-                      <Input id="phone" placeholder="+62 812 3456 7890" />
-                    </div>
-                    <div>
-                      <Label htmlFor="address">Alamat</Label>
-                      <Input id="address" placeholder="Jl. Contoh No. 123" />
-                    </div>
-                    <div>
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
                         type="email"
                         value={email}
-                        onChange={handleEmailChange}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setIsVerified(false);
+                        }}
                       />
                       {!isVerified && (
                         <p className="text-sm text-red-600 mt-1">
@@ -260,11 +265,21 @@ export default function UserProfilePage() {
                   <h2 className="text-lg font-semibold">Keamanan</h2>
                   <div>
                     <Label htmlFor="password">Password Baru</Label>
-                    <Input id="password" type="password" />
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="confirm">Konfirmasi Password</Label>
-                    <Input id="confirm" type="password" />
+                    <Input
+                      id="confirm"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
                   <div className="flex justify-end">
                     <Button
@@ -284,5 +299,5 @@ export default function UserProfilePage() {
         </section>
       </main>
     </ProtectedPage>
-  )
+  );
 }

@@ -45,6 +45,7 @@ export default function VerifyPasswordPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -64,11 +65,35 @@ export default function VerifyPasswordPage() {
 
   // HANDLE SUBMIT
   const handleSubmit = async (values: { password: string; confirmPassword: string }) => {
+    setError("");
+    setLoading(true);
     try {
-      console.log("Password verified:", values.password);
-      router.push("/login");
+      if (!token) throw new Error("Token tidak ditemukan");
+
+      const res = await fetch("/api/verify-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          password: values.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Terjadi kesalahan");
+      }
+
+      // Simpan JWT di localStorage (atau bisa pakai cookie)
+      localStorage.setItem("token", data.token);
+
+      // Redirect sesuai role
+      router.push(data.redirect || "/login");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,8 +160,7 @@ export default function VerifyPasswordPage() {
                     <div className={`h-2 rounded-full ${strength.color} ${strength.width}`} />
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Kekuatan Password:{" "}
-                    <span className="font-medium">{strength.level}</span>
+                    Kekuatan Password: <span className="font-medium">{strength.level}</span>
                   </p>
                   <ul className="text-xs space-y-1">
                     {checks.map((check, i) => (
@@ -198,9 +222,10 @@ export default function VerifyPasswordPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#2f567a] hover:bg-[#3a6b97] text-white font-semibold py-3 rounded-4xl transition"
+                disabled={loading}
+                className="w-full bg-[#2f567a] hover:bg-[#3a6b97] text-white font-semibold py-3 rounded-4xl transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Complete Registrasi
+                {loading ? "Memproses..." : "Complete Registrasi"}
               </button>
             </Form>
           )}

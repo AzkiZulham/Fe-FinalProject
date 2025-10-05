@@ -350,7 +350,7 @@ export default function TenantDashboardLayout({
   const [collapsed, setCollapsed] = useState(false); // desktop
 
   return (
-    <ProtectedPage role="tenant">
+    <ProtectedPage role="TENANT">
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />

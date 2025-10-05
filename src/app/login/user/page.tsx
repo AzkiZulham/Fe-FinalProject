@@ -25,7 +25,7 @@ export default function UserLoginPage() {
           </div>
 
           {/* Form */}
-          <LoginForm role="user" redirectOnSuccess="/user/dashboard" />
+          <LoginForm role="USER" redirectOnSuccess="/user/dashboard" />
         </div>
     </main>
   );

@@ -6,6 +6,12 @@ import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
 
+type RegisterTenantValues = {
+  email: string;
+  role: "TENANT";
+  username?: string; // opsional
+};
+
 const RegisterTenantSchema = Yup.object().shape({
   email: Yup.string().email("Email tidak valid").required("Email wajib diisi"),
 });
@@ -14,33 +20,42 @@ export default function RegisterTenant() {
   const [showModal, setShowModal] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const handleSubmit = async (values: { email: string }) => {
+  const handleSubmit = async (values: RegisterTenantValues) => {
     setMessage(null);
     try {
-      const res = await fetch("/api/registerTenant", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          username: values.username||"",
+          email: values.email,
+          role: "TENANT", // selalu kirim "user"
+        }),
       });
-
+  
       const data = await res.json();
-
+  
       if (res.ok) {
         setShowModal(true);
       } else {
         setMessage(data.error || "Terjadi kesalahan. Coba lagi.");
       }
-    } catch {
-      setMessage("Terjadi kesalahan jaringan. Coba lagi.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Terjadi kesalahan jaringan. Coba lagi."
+      );
     }
   };
-
+  
+        
   const closeModal = () => {
     setAnimateOut(true);
     setTimeout(() => {
       setShowModal(false);
       setAnimateOut(false);
+      window.location.href = "/";
     }, 300);
   };
 
@@ -65,13 +80,14 @@ export default function RegisterTenant() {
 
         {/* Form email */}
         <Formik
-          initialValues={{ email: "" }}
+          initialValues={{ email: "", role: "TENANT" as const }} // Set role to "tenant"
           validationSchema={RegisterTenantSchema}
           onSubmit={async (values, { setSubmitting }) => {
             await handleSubmit(values);
             setSubmitting(false);
           }}
         >
+
           {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>
@@ -117,8 +133,10 @@ export default function RegisterTenant() {
 
         {/* Social login buttons */}
         <div className="space-y-3">
-          <button
-            onClick={() => (window.location.href = "/api/auth/google")}
+        <button
+            onClick={() => {
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google?role=TENANT&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
+            }}
             className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
           >
             <FaGoogle className="w-5 h-5" />
@@ -126,7 +144,9 @@ export default function RegisterTenant() {
           </button>
 
           <button
-            onClick={() => (window.location.href = "/api/auth/facebook")}
+            onClick={() => {
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook?role=TENANT&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
+            }}
             className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
           >
             <FaFacebook className="w-5 h-5" />
@@ -177,4 +197,4 @@ export default function RegisterTenant() {
       )}
     </div>
   );
-}
+} 

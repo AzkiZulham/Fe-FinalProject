@@ -6,42 +6,55 @@ import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
 
+type RegisterUserValues = {
+  email: string;
+  role: "USER";
+  username?: string; // opsional
+};
+
 const RegisterUserSchema = Yup.object().shape({
   email: Yup.string().email("Email tidak valid").required("Email wajib diisi"),
-  username: Yup.string().required("Username wajib diisi"),
 });
 
 export default function RegisterUser() {
   const [showModal, setShowModal] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const handleSubmit = async (values: { username: string; email: string }) => {
+  const handleSubmit = async (values: RegisterUserValues) => {
     setMessage(null);
     try {
-      const res = await fetch("/api/registerUser", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          email: values.email,
+          role: "USER", // selalu kirim "user"
+        }),
       });
-
+  
       const data = await res.json();
-
+  
       if (res.ok) {
         setShowModal(true);
       } else {
         setMessage(data.error || "Terjadi kesalahan. Coba lagi.");
       }
-    } catch {
-      setMessage("Terjadi kesalahan jaringan. Coba lagi.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Terjadi kesalahan jaringan. Coba lagi."
+      );
     }
   };
+  
 
   const closeModal = () => {
     setAnimateOut(true);
     setTimeout(() => {
       setShowModal(false);
       setAnimateOut(false);
+      window.location.href = "/";
     }, 300);
   };
 
@@ -56,7 +69,7 @@ export default function RegisterUser() {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Sudah punya akun?{" "}
             <Link
-              href="/login"
+              href="/login/user"
               className="text-blue-600 hover:text-blue-500 font-medium"
             >
               Masuk di sini
@@ -66,7 +79,7 @@ export default function RegisterUser() {
 
         {/* Form */}
         <Formik
-          initialValues={{ username: "", email: "" }}
+          initialValues={{ username: "", email: "", role: "USER" as const }} // role diisi dengan "user"
           validationSchema={RegisterUserSchema}
           onSubmit={async (values, { setSubmitting }) => {
             await handleSubmit(values);
@@ -75,20 +88,6 @@ export default function RegisterUser() {
         >
           {({ isSubmitting }) => (
             <Form className="space-y-4">
-              <div>
-                <Field
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow bg-gray-50 dark:bg-gray-800"
-                />
-                <ErrorMessage
-                  name="username"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-
               <div>
                 <Field
                   type="email"
@@ -133,7 +132,9 @@ export default function RegisterUser() {
         {/* Social login buttons */}
         <div className="space-y-3">
           <button
-            onClick={() => (window.location.href = "/api/auth/google")}
+            onClick={() => {
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google?role=USER&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
+            }}
             className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
           >
             <FaGoogle className="w-5 h-5" />
@@ -141,7 +142,9 @@ export default function RegisterUser() {
           </button>
 
           <button
-            onClick={() => (window.location.href = "/api/auth/facebook")}
+            onClick={() => {
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook?role=USER&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
+            }}
             className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
           >
             <FaFacebook className="w-5 h-5" />
