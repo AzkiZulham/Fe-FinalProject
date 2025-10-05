@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Check, X, Info } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function VerifyPasswordPage() {
   const router = useRouter();
@@ -10,22 +12,34 @@ export default function VerifyPasswordPage() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const criteria = [
+    { label: "Minimal 8 karakter", test: (pwd: string) => pwd.length >= 8, tip: "Gunakan setidaknya 8 karakter." },
+    { label: "Huruf besar", test: (pwd: string) => /[A-Z]/.test(pwd), tip: "Tambahkan huruf besar seperti A, B, C." },
+    { label: "Huruf kecil", test: (pwd: string) => /[a-z]/.test(pwd), tip: "Tambahkan huruf kecil seperti a, b, c." },
+    { label: "Angka", test: (pwd: string) => /[0-9]/.test(pwd), tip: "Tambahkan angka seperti 1, 2, 3." },
+    { label: "Simbol", test: (pwd: string) => /[\W_]/.test(pwd), tip: "Tambahkan simbol seperti !, @, #, $." },
+  ];
+
+  const validateAllCriteria = (pwd: string) => criteria.every(c => c.test(pwd));
+  const strengthScore = criteria.reduce((acc, c) => acc + (c.test(password) ? 1 : 0), 0);
+  const getStrengthColor = (score: number) => {
+    if (score <= 2) return "bg-red-500";
+    if (score <= 4) return "bg-yellow-400";
+    return "bg-green-500";
+  };
+  const strengthLabel = ["Sangat lemah","Lemah","Sedang","Cukup Kuat","Kuat","Sangat Kuat"][strengthScore];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!token) {
-      setMessage("Token verifikasi tidak ditemukan.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setMessage("Konfirmasi password tidak sama!");
-      return;
-    }
+    if (!token) return setMessage("Token verifikasi tidak ditemukan.");
+    if (!validateAllCriteria(password)) return setMessage("Password belum memenuhi semua kriteria.");
+    if (password !== confirmPassword) return setMessage("Konfirmasi password tidak sama!");
 
     try {
       setLoading(true);
@@ -34,28 +48,20 @@ export default function VerifyPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
-
       const data = await res.json();
 
       if (res.ok) {
         setIsSuccess(true);
         setMessage("Password berhasil dibuat! Kamu akan diarahkan ke halaman login...");
-
-        localStorage.removeItem("verifyToken");        
-        // ✅ Tentukan redirect sesuai role dari backend
-        const loginRoute =
-          data.user?.role === "TENANT" ? "/login/tenant" : "/login/user";
-
-        // Delay 2 detik sebelum redirect ke halaman login
-        setTimeout(() => {
-          router.push(loginRoute);
-        }, 2000);
+        localStorage.removeItem("verifyToken");
+        const loginRoute = data.user?.role === "TENANT" ? "/login/tenant" : "/login/user";
+        setTimeout(() => router.push(loginRoute), 2000);
       } else {
         setIsSuccess(false);
         setMessage(data.message || "Terjadi kesalahan saat memverifikasi akun.");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error(error);
       setMessage("Gagal menghubungi server.");
     } finally {
       setLoading(false);
@@ -64,69 +70,132 @@ export default function VerifyPasswordPage() {
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-[#eaf3fc] dark:bg-gray-900 px-4">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-3xl p-10 sm:p-12">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center text-[#2f567a] dark:text-white mb-4">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-3xl p-8 sm:p-10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center text-[#2f567a] dark:text-white mb-2">
           Verifikasi Akun
         </h1>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-8 text-sm sm:text-base">
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-6 text-sm sm:text-base">
           Masukkan password baru untuk menyelesaikan verifikasi akun Anda.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Password */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Password Baru */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Password Baru
             </label>
             <input
-              id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Masukkan password baru"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full px-4 py-3 rounded-3xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-none focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
-              required
+              className="w-full px-4 pr-10 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
+            >
+              {showPassword ? <EyeOff size={25} /> : <Eye size={25} />}
+            </button>
           </div>
 
+          {/* Animated strength bar */}
+            {password && (
+              <motion.div className="mt-2">
+                <div className="w-full h-2 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(strengthScore / criteria.length) * 100}%` }}
+                    transition={{ duration: 0.4 }}
+                    className={`h-2 rounded-full ${getStrengthColor(strengthScore)}`}
+                  />
+                </div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs mt-1 text-gray-700 dark:text-gray-300"
+                >
+                  {strengthLabel}
+                </motion.p>
+              </motion.div>
+            )}
+
+            {/* Criteria with tooltip */}
+            <ul className="mt-2 text-sm space-y-1 pl-2">
+              {criteria.map((c) => {
+                const passed = c.test(password);
+                return (
+                  <motion.li
+                    key={c.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={`flex items-center gap-1 relative group ${passed ? "text-green-600" : "text-red-500"}`}
+                  >
+                    {passed ? <Check size={16} /> : <X size={16} />}
+                    {c.label}
+                    {!passed && (
+                      <span className="absolute left-full ml-2 w-44 bg-gray-800 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <Info size={12} className="inline mr-1" />
+                        {c.tip}
+                      </span>
+                    )}
+                  </motion.li>
+                );
+              })}
+            </ul>
+
           {/* Konfirmasi Password */}
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Konfirmasi Password
             </label>
             <input
-              id="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Konfirmasi password baru"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-2 w-full px-4 py-3 rounded-3xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-none focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
-              required
+              className="w-full px-4 pr-10 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(prev => !prev)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
+            >
+              {showConfirmPassword ? <EyeOff size={25} /> : <Eye size={25} />}
+            </button>
+
+            <AnimatePresence>
+              {confirmPassword && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={`text-xs mt-1 ${password === confirmPassword ? "text-green-600" : "text-red-500"}`}
+                >
+                  {password === confirmPassword ? "Password cocok" : "Password tidak cocok"}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Pesan Feedback */}
+          {/* Server message */}
           {message && (
-            <div
-              className={`text-center text-sm mt-2 ${
-                isSuccess ? "text-green-600" : "text-red-500"
-              }`}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={`text-center text-sm ${isSuccess ? "text-green-600" : "text-red-500"}`}
             >
               {message}
-            </div>
+            </motion.div>
           )}
 
-          {/* Tombol Submit */}
+          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#2f567a] hover:bg-[#3a6b97] text-white font-semibold py-3 rounded-3xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#2f567a] hover:bg-[#3a6b97] text-white font-semibold py-3 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Memproses..." : "Simpan Password"}
           </button>

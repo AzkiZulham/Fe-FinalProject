@@ -6,10 +6,12 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/authContext"; // sesuaikan path
+
 
 type Props = {
   role: "USER" | "TENANT";
-  redirectOnSuccess?: string; // optional override
+  redirectOnSuccess?: string;
 };
 
 interface LoginPayload {
@@ -27,6 +29,7 @@ const LoginSchema = Yup.object().shape({
 
 export default function LoginForm({ role, redirectOnSuccess }: Props) {
   const router = useRouter();
+  const { login } = useAuth(); // 🔹 ambil fungsi login dari context
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,34 +43,28 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
     };
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       });
 
-      const text = await res.text();
-      let data: { message?: string; error?: string } | null = null;
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch {
-        // ignore if not JSON
-      }
+      const data = await res.json();
 
       if (!res.ok) {
-        const message =
-          (data && (data.message || data.error)) ||
-          `Login gagal (status ${res.status})`;
-        setServerError(message);
+        setServerError(data?.message || data?.error || `Login gagal (status ${res.status})`);
+        
         return;
       }
-      // Login successful
-      const destination =
-        redirectOnSuccess ||
-        (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
+      const destination = redirectOnSuccess || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
+      router.push(data.redirect || destination);
 
-      router.push(destination);
+      // 🔹 Simpan user + token ke context (dan localStorage otomatis)
+      login(data.user, data.token);
+
+      // Redirect
+      router.push(data.redirect || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile"));
     } catch (err: unknown) {
       console.error("Login error:", err);
       setServerError("Terjadi kesalahan jaringan. Coba lagi.");
@@ -203,7 +200,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
       {/* Social login */}
       <div className="space-y-3">
         <button
-          onClick={() => (window.location.href = "/api/auth/google")}
+          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
           className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
         >
           <FaGoogle className="w-5 h-5" />
@@ -211,7 +208,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         </button>
 
         <button
-          onClick={() => (window.location.href = "/api/auth/facebook")}
+          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
           className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
         >
           <FaFacebook className="w-5 h-5" />

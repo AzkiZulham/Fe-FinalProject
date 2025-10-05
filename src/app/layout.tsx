@@ -34,16 +34,20 @@ export default function RootLayout({
           <AuthInitializer>
             <NavbarWrapper />
             <main className="flex-grow">{children}</main>
-            <Toaster 
-              position="top-center" 
+            <Toaster
+              position="bottom-left" 
               toastOptions={{
                 style: {
                   background: "#1e293b",
                   color: "#fff",
                   borderRadius: "8px",
+                  padding: "12px 16px",
+                  maxWidth: "300px",   
+                  wordBreak: "break-word", 
                 },
-              }} 
-              reverseOrder={false} />
+              }}
+              reverseOrder={false}
+            />
           </AuthInitializer>
         </AuthProvider>
       </body>

@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
         <div className="bg-white p-6 rounded-2xl shadow-md max-w-md text-center">
           <h1 className="text-3xl font-semibold text-[#2f567a] mb-4">
-            Token tidak valid!
+            Reset Password gagal!
           </h1>
           <p className="text-sm text-gray-500">
             Silakan ulangi proses reset password melalui email.
