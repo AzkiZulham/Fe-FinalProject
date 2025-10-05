@@ -1,5 +1,5 @@
 import Image from "next/image";
-import LoginForm from "../../../components/loginForm";
+import LoginFormClient from "../user/loginFormClient";
 
 export const metadata = {
   title: "Login User — StayFinder",
@@ -25,7 +25,10 @@ export default function UserLoginPage() {
           </div>
 
           {/* Form */}
-          <LoginForm role="USER" redirectOnSuccess="/user/dashboard" />
+          <LoginFormClient
+          role="USER"
+          redirectOnSuccess="/"
+        />
         </div>
     </main>
   );
