@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Check, X, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,8 @@ export default function VerifyPasswordPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [tokenChecked, setTokenChecked] = useState<"checking" | "valid" | "invalid">("checking");
+
   const criteria = [
     { label: "Minimal 8 karakter", test: (pwd: string) => pwd.length >= 8, tip: "Gunakan setidaknya 8 karakter." },
     { label: "Huruf besar", test: (pwd: string) => /[A-Z]/.test(pwd), tip: "Tambahkan huruf besar seperti A, B, C." },
@@ -34,6 +36,57 @@ export default function VerifyPasswordPage() {
     return "bg-green-500";
   };
   const strengthLabel = ["Sangat lemah","Lemah","Sedang","Cukup Kuat","Kuat","Sangat Kuat"][strengthScore];
+
+  useEffect(() => {
+    const checkToken = async () => {
+      if (!token) {
+        setTokenChecked("invalid");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-token?token=${token}`);
+        const data = await res.json();
+
+        if (!res.ok || !data.valid) {
+          setTokenChecked("invalid");
+          return;
+        }
+
+        setTokenChecked("valid");
+      } catch (err) {
+        console.error("Token check failed:", err);
+        setTokenChecked("invalid");
+      }
+    };
+
+    checkToken();
+  }, [token]);
+
+  if (tokenChecked === "checking") {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-[#eaf3fc] dark:bg-gray-900">
+        <p className="text-gray-700 dark:text-gray-300 text-sm">Memeriksa token verifikasi...</p>
+      </main>
+    );
+  }
+
+  if (tokenChecked === "invalid") {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-[#eaf3fc] dark:bg-gray-900">
+        <div className="text-center">
+          <h1 className="text-6xl font-bold text-[#2f567a] dark:text-white mb-4">404</h1>
+          <p className="text-gray-700 dark:text-gray-300 text-lg mb-2">Token tidak valid atau sudah kedaluwarsa.</p>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 px-5 py-2 bg-[#2f567a] text-white rounded-xl hover:bg-[#3a6b97] transition"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,57 +147,65 @@ export default function VerifyPasswordPage() {
             <button
               type="button"
               onClick={() => setShowPassword(prev => !prev)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
+              className="absolute right-2 top-12 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
             >
               {showPassword ? <EyeOff size={25} /> : <Eye size={25} />}
             </button>
           </div>
 
-          {/* Animated strength bar */}
-            {password && (
-              <motion.div className="mt-2">
-                <div className="w-full h-2 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(strengthScore / criteria.length) * 100}%` }}
-                    transition={{ duration: 0.4 }}
-                    className={`h-2 rounded-full ${getStrengthColor(strengthScore)}`}
-                  />
-                </div>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs mt-1 text-gray-700 dark:text-gray-300"
-                >
-                  {strengthLabel}
-                </motion.p>
-              </motion.div>
-            )}
+          {/* Strength Bar + Criteria (muncul hanya saat user mulai mengetik) */}
+          {password && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-2"
+            >
+              {/* Strength Bar */}
+              <div className="w-full h-2 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(strengthScore / criteria.length) * 100}%` }}
+                  transition={{ duration: 0.4 }}
+                  className={`h-2 rounded-full ${getStrengthColor(strengthScore)}`}
+                />
+              </div>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs mt-1 text-gray-700 dark:text-gray-300"
+              >
+                {strengthLabel}
+              </motion.p>
 
-            {/* Criteria with tooltip */}
-            <ul className="mt-2 text-sm space-y-1 pl-2">
-              {criteria.map((c) => {
-                const passed = c.test(password);
-                return (
-                  <motion.li
-                    key={c.label}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={`flex items-center gap-1 relative group ${passed ? "text-green-600" : "text-red-500"}`}
-                  >
-                    {passed ? <Check size={16} /> : <X size={16} />}
-                    {c.label}
-                    {!passed && (
-                      <span className="absolute left-full ml-2 w-44 bg-gray-800 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <Info size={12} className="inline mr-1" />
-                        {c.tip}
-                      </span>
-                    )}
-                  </motion.li>
-                );
-              })}
-            </ul>
+              {/* Criteria List */}
+              <ul className="mt-2 text-sm space-y-1 pl-2">
+                {criteria.map((c) => {
+                  const passed = c.test(password);
+                  return (
+                    <motion.li
+                      key={c.label}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={`flex items-center gap-1 relative group ${
+                        passed ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
+                      {passed ? <Check size={16} /> : <X size={16} />}
+                      {c.label}
+                      {!passed && (
+                        <span className="absolute left-full ml-2 w-44 bg-gray-800 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <Info size={12} className="inline mr-1" />
+                          {c.tip}
+                        </span>
+                      )}
+                    </motion.li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          )}
 
           {/* Konfirmasi Password */}
           <div className="relative">
@@ -161,7 +222,7 @@ export default function VerifyPasswordPage() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(prev => !prev)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
+              className="absolute right-2 top-12 -translate-y-1/2 text-gray-500 dark:text-gray-400 p-1"
             >
               {showConfirmPassword ? <EyeOff size={25} /> : <Eye size={25} />}
             </button>
