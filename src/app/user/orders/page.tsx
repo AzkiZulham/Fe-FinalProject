@@ -9,6 +9,7 @@ import { UserOrderResponse } from "@/src/lib/orders/types";
 export default function OrdersClient() {
   const router = useRouter();
   const pathname = usePathname();
+  const sp = useSearchParams();
 
   const [data, setData] = useState<UserOrderResponse>({
     page: 1,
@@ -19,12 +20,12 @@ export default function OrdersClient() {
   });
   const [loading, setLoading] = useState(false);
 
-  const page = Number(useSearchParams().get("page") || 1);
-  const limit = Number(useSearchParams().get("limit") || 10);
-  const status = useSearchParams().get("status") || "";
-  const q = useSearchParams().get("q") || "";
-  const from = useSearchParams().get("from") || "";
-  const to = useSearchParams().get("to") || "";
+  const page = Number(sp.get("page") || 1);
+  const limit = Number(sp.get("limit") || 10);
+  const status = sp.get("status") || "";
+  const q = sp.get("q") || "";
+  const from = sp.get("from") || "";
+  const to = sp.get("to") || "";
 
   const fetchData = async () => {
     setLoading(true);
@@ -48,7 +49,7 @@ export default function OrdersClient() {
   }, [page, limit, status, q, from, to]);
 
   const setParam = (k: string, v?: string) => {
-    const usp = new URLSearchParams(useSearchParams().toString());
+    const usp = new URLSearchParams(sp.toString());
     if (v) usp.set(k, v);
     else usp.delete(k);
     usp.set("page", "1");
