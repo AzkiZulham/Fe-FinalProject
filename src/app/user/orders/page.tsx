@@ -5,6 +5,8 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { axios } from "@/src/lib/axios";
 import StatusBadge from "@/src/components/statusBadge";
 import { UserOrderResponse } from "@/src/lib/orders/types";
+import Modal from "@/src/components/modal/modal";
+import OrderDetailBody from "@/src/components/modal/orderDetail/orderDetail";
 
 export default function OrdersClient() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function OrdersClient() {
     items: [],
   });
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const page = Number(sp.get("page") || 1);
   const limit = Number(sp.get("limit") || 10);
@@ -31,7 +35,7 @@ export default function OrdersClient() {
     setLoading(true);
     try {
       const res = await axios.get<UserOrderResponse>(
-        "/transaction/user/orders",
+        "/api/transaction/user/orders",
         {
           params: { page, limit, status, dateFrom: from, dateTo: to, q },
         }
@@ -60,6 +64,11 @@ export default function OrdersClient() {
     () => (data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1),
     [data]
   );
+
+  const openDetail = (id: number) => {
+    setSelectedId(id);
+    setOpen(true);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
@@ -144,12 +153,12 @@ export default function OrdersClient() {
                     <StatusBadge status={o.status as any} />
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/user/orders/${o.id}`}
+                    <button
+                      onClick={() => openDetail(o.id)}
                       className="rounded-md border px-3 py-1 hover:bg-gray-50"
                     >
                       Detail
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -185,6 +194,9 @@ export default function OrdersClient() {
           </div>
         </div>
       )}
+      <Modal open={open} onClose={() => setOpen(false)} title="Detail Pesanan">
+        {selectedId ? <OrderDetailBody id={selectedId} /> : null}
+      </Modal>
     </div>
   );
 }

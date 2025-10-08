@@ -38,3 +38,42 @@ export interface UserOrderResponse {
   totalPages: number;
   items: UserOrder[];
 }
+
+// src/lib/types.ts
+export interface UserOrderDetail {
+  id: number;
+  status:
+    | "WAITING_FOR_PAYMENT"
+    | "WAITING_FOR_CONFIRMATION"
+    | "ACCEPTED"
+    | "CANCELLED";
+  qty: number;
+  totalPrice: number;
+  checkInDate: string;
+  checkOutDate: string;
+  createdAt: string;
+  roomType: {
+    roomName: string | null;
+    property: {
+      id: number;
+      name: string;
+      city: string;
+      address: string;
+      userId: number;
+    } | null;
+  } | null;
+  payment: {
+    id: number;
+    method: "TRANSFER" | "MIDTRANS";
+    paymentStatus: string | null;
+    paymentUrl: string | null;
+    paymentProof: string | null;
+    paidAt: string | null;
+    createdAt: string;
+  } | null;
+}
+
+export interface UserOrderDetailResponse {
+  message: string;
+  data: UserOrderDetail;
+}
