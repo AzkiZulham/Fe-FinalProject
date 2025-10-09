@@ -8,12 +8,18 @@ type User = {
   id: string;
   role: "USER" | "TENANT";
   verified: boolean;
-  email: string; // tambahkan email
+  email: string;
+  username?: string;
+  avatar?: string;
+  phoneNumber?: string;
+  birthDate?: string;
+  gender?: "MALE" | "FEMALE" | "OTHER";
 };
 
 type DecodedToken = {
   id: string;
   role: "USER" | "TENANT";
+  username?: string;
   email: string;
   verified?: boolean;
   exp?: number;
@@ -33,31 +39,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const router = useRouter();
 
-  // Load user dari token di localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded: DecodedToken = jwtDecode(token);
-        const now = Date.now() / 1000;
-        if (!decoded.exp || decoded.exp > now) {
-          setUser({
-            id: decoded.id,
-            role: decoded.role,
-            verified: decoded.verified ?? true,
-            email: decoded.email,
-          });
-        } else {
-          localStorage.removeItem("token");
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Invalid token", err);
+    if (!token) {
+      setInitialized(true);
+      return;
+    }
+
+    try {
+      const decoded: DecodedToken = jwtDecode(token);
+      const now = Date.now() / 1000;
+
+      // Kalau token valid, ambil data lengkap user dari API
+      if (!decoded.exp || decoded.exp > now) {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(async (res) => {
+            if (!res.ok) throw new Error("Failed to fetch user");
+            const data = await res.json();
+            const u = data.user;
+
+            setUser({
+              id: u.id || decoded.id,
+              role: u.role || decoded.role,
+              verified:
+                u.verified ||
+                u.isEmailVerified ||
+                u.emailVerified ||
+                false,
+              email: u.email || decoded.email,
+              username: u.username || decoded.username || "",
+              avatar: u.avatar || "/default-avatar.png",
+              phoneNumber: u.phoneNumber || "",
+              birthDate: u.birthDate || "",
+              gender: u.gender || "",
+            });
+          })
+          .catch((err) => {
+            console.error("Error fetching user:", err);
+            // fallback ke token decode
+            setUser({
+              id: decoded.id,
+              role: decoded.role,
+              verified: decoded.verified === true,
+              email: decoded.email,
+              username: decoded.username || "",
+            });
+          })
+          .finally(() => setInitialized(true));
+      } else {
         localStorage.removeItem("token");
         setUser(null);
+        setInitialized(true);
       }
+    } catch (err) {
+      console.error("Invalid token", err);
+      localStorage.removeItem("token");
+      setUser(null);
+      setInitialized(true);
     }
-    setInitialized(true);
   }, []);
 
   const login = (newUser: User, token?: string) => {
@@ -69,10 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem("auth");
     localStorage.removeItem("token");
-    localStorage.removeItem("auth_token");  
-    localStorage.removeItem("verifyToken"); 
-
-    console.log("After logout", localStorage);
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("verifyToken");
     router.push("/");
   };
 
