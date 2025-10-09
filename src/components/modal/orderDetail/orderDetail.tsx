@@ -7,6 +7,7 @@ import {
   UserOrderDetailResponse,
 } from "@/src/lib/orders/types";
 import StatusBadge from "../../statusBadge";
+import ReviewSection from "../../orders/review/reviewFormik";
 
 export default function OrderDetailBody({ id }: { id: number }) {
   const [order, setOrder] = useState<UserOrderDetail | null>(null);
@@ -38,7 +39,6 @@ export default function OrderDetailBody({ id }: { id: number }) {
 
   const orderNumber = `ORD-${order.id}-${new Date(order.createdAt).getTime()}`;
 
-  // tampilkan tombol hanya jika status WAITING_FOR_PAYMENT
   const showActions = order.status === "WAITING_FOR_PAYMENT";
 
   return (
@@ -103,6 +103,11 @@ export default function OrderDetailBody({ id }: { id: number }) {
           </div>
         )}
       </div>
+      <ReviewSection
+        transactionId={order.id}
+        orderStatus={order.status}
+        checkOutDateISO={order.checkOutDate}
+      />
     </div>
   );
 }
