@@ -7,7 +7,6 @@ import {
   UserOrderDetailResponse,
 } from "@/src/lib/orders/types";
 import StatusBadge from "../../statusBadge";
-import UploadPaymentProofFormik from "../../orders/uploadPayment/uploadPaymentFormik";
 
 export default function OrderDetailBody({ id }: { id: number }) {
   const [order, setOrder] = useState<UserOrderDetail | null>(null);
@@ -99,7 +98,7 @@ export default function OrderDetailBody({ id }: { id: number }) {
 
         {showActions && (
           <div className="flex flex-col gap-4 mt-3">
-            <UploadPaymentProofFormik orderId={order.id} onDone={fetchOne} />
+            {/* <UploadPaymentProofFormik orderId={order.id} onDone={fetchOne} /> */}
             <CancelOrderBtn orderId={order.id} onDone={fetchOne} />
           </div>
         )}
