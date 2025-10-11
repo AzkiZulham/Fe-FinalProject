@@ -11,7 +11,12 @@ import Footer from "@/components/footer";
 import { MapPin } from "lucide-react";
 import { useAuth } from "@/context/authContext";
 
-import type { Property, Review, RoomType, PeakSeason } from "@/components/properties/types";
+import type {
+  Property,
+  Review,
+  RoomType,
+  PeakSeason,
+} from "@/components/properties/types";
 
 type ApiResponse = {
   property: Property & {
@@ -43,23 +48,24 @@ export default function PropertyDetailPage(): React.ReactElement {
         const propertyData = res.data.property;
 
         const normalizedRooms = Array.isArray(propertyData.roomTypes)
-        ? propertyData.roomTypes.map(room => {
-            const roomWithPeak: typeof room & { peakSeasons?: PeakSeason[] } = room;
-            return {
-              ...room,
-              images: room.roomImg ? [room.roomImg] : [],
-              quota: room.quota,
-              peakSeasons: Array.isArray(roomWithPeak.peakSeasons)
-                ? roomWithPeak.peakSeasons.map(season => ({
-                    startDate: season.startDate,
-                    endDate: season.endDate,
-                    nominal: season.nominal,
-                    percentage: season.percentage
-                  }))
-                : []
-            };
-          })
-        : [];
+          ? propertyData.roomTypes.map((room) => {
+              const roomWithPeak: typeof room & { peakSeasons?: PeakSeason[] } =
+                room;
+              return {
+                ...room,
+                images: room.roomImg ? [room.roomImg] : [],
+                quota: room.quota,
+                peakSeasons: Array.isArray(roomWithPeak.peakSeasons)
+                  ? roomWithPeak.peakSeasons.map((season) => ({
+                      startDate: season.startDate,
+                      endDate: season.endDate,
+                      nominal: season.nominal,
+                      percentage: season.percentage,
+                    }))
+                  : [],
+              };
+            })
+          : [];
 
         const validatedProperty: Property = {
           ...propertyData,
@@ -68,7 +74,7 @@ export default function PropertyDetailPage(): React.ReactElement {
             : propertyData.picture
             ? [propertyData.picture]
             : [],
-          roomtypes: normalizedRooms
+          roomtypes: normalizedRooms,
         };
 
         setProperty(validatedProperty);
@@ -121,8 +127,12 @@ export default function PropertyDetailPage(): React.ReactElement {
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🏠</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Properti tidak ditemukan</h1>
-          <p className="text-gray-600 mb-6">ID {id} tidak ditemukan dalam sistem kami</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            Properti tidak ditemukan
+          </h1>
+          <p className="text-gray-600 mb-6">
+            ID {id} tidak ditemukan dalam sistem kami
+          </p>
           <button
             onClick={() => window.history.back()}
             className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
@@ -134,60 +144,68 @@ export default function PropertyDetailPage(): React.ReactElement {
     );
   }
 
-  const handleBook = async (room: RoomType, checkIn: Date, checkOut: Date) => {
+  const handleBook = async (
+    room: RoomType,
+    checkIn: Date,
+    checkOut: Date,
+    qty: number
+  ) => {
     if (!user) {
-      window.location.href = '/login/user';
+      window.location.href = "/login/user";
       return;
     }
 
     if (!selectedRoom) {
-      alert('Silakan pilih tipe kamar terlebih dahulu');
+      alert("Silakan pilih tipe kamar terlebih dahulu");
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('Token autentikasi tidak ditemukan. Silakan login ulang.');
-        window.location.href = '/login/user';
+        alert("Token autentikasi tidak ditemukan. Silakan login ulang.");
+        window.location.href = "/login/user";
         return;
       }
 
-      const checkInDate = checkIn.toISOString().split('T')[0];
-      const checkOutDate = checkOut.toISOString().split('T')[0];
+      const checkInDate = checkIn.toISOString().split("T")[0];
+      const checkOutDate = checkOut.toISOString().split("T")[0];
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/transactions`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/transaction/`,
         {
           roomTypeId: room.id,
-          qty: 1, // Assuming 1 room for now; can be enhanced to support multiple rooms
+          qty,
           checkInDate,
           checkOutDate,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
       if (response.status === 201) {
         const { transaction } = response.data;
-        alert(`Pesanan berhasil dibuat! Nomor Pesanan: ${transaction.orderNumber}. Segera lakukan pembayaran dalam 1 jam.`);
-        window.location.href = '/user/orders';
+
+        window.location.href = `/checkout?transactionId=${transaction.id}`;
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
-      console.error('Booking error:', axiosError);
+      console.error("Booking error:", axiosError);
       if (axiosError.response?.status === 401) {
-        alert('Sesi autentikasi kedaluwarsa. Silakan login ulang.');
-        localStorage.removeItem('token');
-        window.location.href = '/login/user';
+        alert("Sesi autentikasi kedaluwarsa. Silakan login ulang.");
+        localStorage.removeItem("token");
+        window.location.href = "/login/user";
       } else if (axiosError.response?.status === 403) {
-        alert('Akses ditolak. Hanya pengguna yang dapat membuat pesanan.');
+        alert("Akses ditolak. Hanya pengguna yang dapat membuat pesanan.");
       } else {
-        alert((axiosError.response?.data as { error?: string })?.error || 'Gagal membuat pesanan. Silakan coba lagi.');
+        alert(
+          (axiosError.response?.data as { error?: string })?.error ||
+            "Gagal membuat pesanan. Silakan coba lagi."
+        );
       }
     }
   };
@@ -197,14 +215,18 @@ export default function PropertyDetailPage(): React.ReactElement {
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">{property.name}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            {property.name}
+          </h1>
 
           <div className="flex items-center space-x-2 text-gray-600 mb-4">
             <MapPin className="w-5 h-5 text-blue-600" />
             <span className="text-lg">{property.address}</span>
           </div>
 
-          <p className="text-gray-700 text-lg leading-relaxed max-w-4xl">{property.description}</p>
+          <p className="text-gray-700 text-lg leading-relaxed max-w-4xl">
+            {property.description}
+          </p>
         </div>
       </div>
 
@@ -218,9 +240,11 @@ export default function PropertyDetailPage(): React.ReactElement {
           <div className="xl:col-span-2 space-y-8">
             {/* Rooms Section */}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Tipe Kamar Tersedia</h2>
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">
+                Tipe Kamar Tersedia
+              </h2>
               <div className="space-y-6">
-                {property.roomtypes.map(room => (
+                {property.roomtypes.map((room) => (
                   <RoomCard
                     key={room.id}
                     room={room}
@@ -235,8 +259,12 @@ export default function PropertyDetailPage(): React.ReactElement {
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">🛏️</span>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Tidak ada kamar tersedia</h3>
-                    <p className="text-gray-600">Silakan cek kembali di waktu lain.</p>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Tidak ada kamar tersedia
+                    </h3>
+                    <p className="text-gray-600">
+                      Silakan cek kembali di waktu lain.
+                    </p>
                   </div>
                 )}
               </div>
