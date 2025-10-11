@@ -1,4 +1,3 @@
-// src/lib/axios.ts
 import Axios from "axios";
 
 export const axios = Axios.create({

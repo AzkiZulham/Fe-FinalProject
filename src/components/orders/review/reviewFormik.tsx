@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { axios } from "@/src/lib/axios";
-import { TransactionStatus } from "@/src/lib/orders/types";
+import { axios } from "@/lib/axios";
+import { TransactionStatus } from "@/lib/orders/types";
 
 type ReviewData = {
   id: number;

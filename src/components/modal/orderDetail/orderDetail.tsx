@@ -1,14 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { axios } from "@/src/lib/axios";
-import CancelOrderBtn from "@/src/components/orders/cancelOrderBtn";
-import {
-  UserOrderDetail,
-  UserOrderDetailResponse,
-} from "@/src/lib/orders/types";
+
 import StatusBadge from "../../statusBadge";
 import ReviewSection from "../../orders/review/reviewFormik";
 import UploadPaymentProofFormik from "../../orders/uploadPayment/uploadPayment";
+import { UserOrderDetail, UserOrderDetailResponse } from "@/lib/orders/types";
+import { axios } from "@/lib/axios";
+import CancelOrderBtn from "@/components/orders/cancelOrderBtn";
 
 export default function OrderDetailBody({ id }: { id: number }) {
   const [order, setOrder] = useState<UserOrderDetail | null>(null);
