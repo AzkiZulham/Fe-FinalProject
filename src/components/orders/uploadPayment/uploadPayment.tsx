@@ -1,7 +1,7 @@
 "use client";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { axios } from "@/src/lib/axios";
+import { axios } from "@/lib/axios";
 import { useState } from "react";
 
 const MAX_SIZE = 1_000_000; // 1MB
@@ -58,11 +58,15 @@ export default function UploadPaymentProofFormik({
             );
             onDone?.();
             resetForm();
-          } catch (e: any) {
+          } catch (e: unknown) {
+            const error = e as {
+              response?: { data?: { error?: string; message?: string } };
+              message?: string;
+            };
             const msg =
-              e?.response?.data?.error ||
-              e?.response?.data?.message ||
-              e?.message ||
+              error.response?.data?.error ||
+              error.response?.data?.message ||
+              error.message ||
               "Gagal mengunggah bukti bayar";
             setServerErr(msg);
           } finally {
@@ -74,7 +78,6 @@ export default function UploadPaymentProofFormik({
           isSubmitting,
           setFieldValue,
           setFieldTouched,
-          values,
           getFieldProps,
         }) => (
           <Form className="space-y-3">

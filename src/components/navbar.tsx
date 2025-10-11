@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, LogOut, Home, User, ShoppingBag, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, Home, User, ShoppingBag, LayoutDashboard, Building } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../context/authContext"; // ambil role & logout dari context
+import { useAuth } from "@/context/authContext"; // ambil role & logout dari context
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,12 +27,12 @@ const navLinks =
         { name: "Dashboard", href: "/tenant/dashboard", icon: <LayoutDashboard size={18} /> },
       ]
     : [
-        { name: "Home", href: "/" },
-        { name: "Properti", href: "/properti" },
+        { name: "Home", href: "/", icon: <Home size={18} /> },
+        { name: "Properti", href: "/properti", icon: <Building size={18} /> },
         {
           name: "Daftarkan Properti Anda",
           href: "/tenant",
-          highlight: true, 
+          highlight: true,
         },
       ];
 

@@ -20,7 +20,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import ProtectedPage from "@/src/components/protectedPage";
+import ProtectedPage from "@/components/protectedPage";
 
 // ================= Types =================
 type MenuItem = {

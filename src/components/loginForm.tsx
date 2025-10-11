@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/authContext"; // sesuaikan path
+import { useAuth } from "@/context/authContext"; // sesuaikan path
 
 
 type Props = {

@@ -1,12 +1,11 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { axios } from "@/src/lib/axios";
-import StatusBadge from "@/src/components/statusBadge";
-import { UserOrderResponse } from "@/src/lib/orders/types";
-import Modal from "@/src/components/modal/modal";
-import OrderDetailBody from "@/src/components/modal/orderDetail/orderDetail";
+import { axios } from "@/lib/axios";
+import StatusBadge from "@/components/statusBadge";
+import { UserOrderResponse, TransactionStatus } from "@/lib/orders/types";
+import Modal from "@/components/modal/modal";
+import OrderDetailBody from "@/components/modal/orderDetail/orderDetail";
 
 export default function OrdersClient() {
   const router = useRouter();
@@ -31,7 +30,7 @@ export default function OrdersClient() {
   const from = sp.get("from") || "";
   const to = sp.get("to") || "";
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get<UserOrderResponse>(
@@ -46,11 +45,11 @@ export default function OrdersClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, status, q, from, to]);
 
   useEffect(() => {
     fetchData();
-  }, [page, limit, status, q, from, to]);
+  }, [fetchData]);
 
   const setParam = (k: string, v?: string) => {
     const usp = new URLSearchParams(sp.toString());
@@ -79,7 +78,7 @@ export default function OrdersClient() {
           placeholder="Cari (order no / properti)"
           defaultValue={q}
           onKeyDown={(e) =>
-            e.key === "Enter" && setParam("q", (e.target as any).value)
+            e.key === "Enter" && setParam("q", (e.target as HTMLInputElement).value)
           }
           className="col-span-2 rounded-md border px-3 py-2"
         />
@@ -134,9 +133,9 @@ export default function OrdersClient() {
                 <tr key={o.id}>
                   <td className="px-4 py-3 font-medium">{o.orderNumber}</td>
                   <td className="px-4 py-3">
-                    <div className="font-medium">{o.property.name}</div>
+                    <div className="font-medium">{o.property?.name}</div>
                     <div className="text-xs text-gray-500">
-                      {o.roomName} • {o.property.city}
+                      {o.roomName} • {o.property?.city}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -150,7 +149,7 @@ export default function OrdersClient() {
                     Rp {o.totalPrice.toLocaleString("id-ID")}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={o.status as any} />
+                    <StatusBadge status={o.status as TransactionStatus} />
                   </td>
                   <td className="px-4 py-3">
                     <button

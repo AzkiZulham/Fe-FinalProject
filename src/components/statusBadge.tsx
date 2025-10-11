@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { TransactionStatus } from "../lib/orders/types";
+import { TransactionStatus } from "@/lib/orders/types";
 
 export default function StatusBadge({ status }: { status: TransactionStatus }) {
   const map: Record<TransactionStatus, string> = {

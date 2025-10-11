@@ -1,15 +1,15 @@
 "use client";
 
-import { Card } from "../../../components/ui/card";
-import { Tabs } from "../../../components/ui/tabs";
-import { TabsList } from "../../../components/ui/tabs";
-import { TabsTrigger} from "../../../components/ui/tabs";
-import { TabsContent } from "../../../components/ui/tabs";
+import { Card } from "@components/ui/card";
+import { Tabs } from "@components/ui/tabs";
+import { TabsList } from "@components/ui/tabs";
+import { TabsTrigger} from "@components/ui/tabs";
+import { TabsContent } from "@components/ui/tabs";
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import ProtectedPage from "@/src/components/protectedPage";
-import { useAuth } from "@/src/context/authContext";
+import ProtectedPage from "@/components/protectedPage";
+import { useAuth } from "@/context/authContext";
 import AvatarUpload from "./avatarUpload";
 import PersonalInfoForm from "./personalInfoForm";
 import SecurityForm from "./securityForm";
