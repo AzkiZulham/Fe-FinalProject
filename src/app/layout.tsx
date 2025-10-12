@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "../context/authContext";
-import NavbarWrapper from "../components/navbarWrapper";
-import AuthInitializer from "../components/authInItializer";
+import { AuthProvider } from "@/context/authContext";
+import NavbarWrapper from "@/components/navbarWrapper";
+import AuthInitializer from "@/components/authInItializer";
 import { Toaster } from "react-hot-toast";
 
 <Toaster

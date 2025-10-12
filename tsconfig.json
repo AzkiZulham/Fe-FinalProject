@@ -22,13 +22,24 @@
         "name": "next"
       }
     ],
-    
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@src/*": [
+        "./*"
+      ],
+      "@components/*": [
+        "./components/*"
+      ]
+    },
+    "types": [
+      "react",
+      "react-dom",
+      "node"
+    ]
   },
-},
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
