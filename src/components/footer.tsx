@@ -25,22 +25,20 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Navigation */}
         <div>
           <h3 className="font-semibold mb-3">Navigasi</h3>
           <ul className="space-y-2 text-sm">
-            {["Beranda", "Properti", "Tentang Kami", "Kontak"].map((item, idx) => (
+            {["Beranda", "Properti", "Tentang Kami",].map((item, idx) => (
               <li key={idx}>
                 <Link
                   href={
                     item === "Beranda"
                       ? "/"
                       : item === "Properti"
-                      ? "/properti"
+                      ? "/property"
                       : item === "Tentang Kami"
-                      ? "/tentang"
-                      : "/kontak"
-                  }
+                      ? "/abaout-me"
+                      : ""}
                   className="transition-colors duration-300 hover:text-[#7ba2c5]"
                 >
                   {item}
@@ -50,7 +48,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Kontak */}
         <div>
           <h3 className="font-semibold mb-3">Kontak</h3>
           <ul className="space-y-2 text-sm">
@@ -63,7 +60,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Sosial Media */}
         <div>
           <h3 className="font-semibold mb-3">Ikuti Kami</h3>
           <div className="flex gap-4">
@@ -80,7 +76,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom */}
       <div className="border-t border-gray-500/30 text-center py-4 text-sm text-gray-200">
         © {new Date().getFullYear()} STAYFINDER. Semua hak dilindungi.
       </div>

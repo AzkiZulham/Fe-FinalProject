@@ -93,7 +93,7 @@ export default function PropertyDetailPage(): React.ReactElement {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2f567a] mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Memuat data properti...</p>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function PropertyDetailPage(): React.ReactElement {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-[#2f567a] text-white rounded-xl hover:bg-[#1e3a4f] transition-colors font-medium"
           >
             Coba Lagi
           </button>
@@ -135,7 +135,7 @@ export default function PropertyDetailPage(): React.ReactElement {
           </p>
           <button
             onClick={() => window.history.back()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-[#2f567a] text-white rounded-xl hover:bg-[#1e3a4f] transition-colors font-medium"
           >
             Kembali
           </button>
@@ -220,7 +220,7 @@ export default function PropertyDetailPage(): React.ReactElement {
           </h1>
 
           <div className="flex items-center space-x-2 text-gray-600 mb-4">
-            <MapPin className="w-5 h-5 text-blue-600" />
+            <MapPin className="w-5 h-5 text-[#2f567a]" />
             <span className="text-lg">{property.address}</span>
           </div>
 

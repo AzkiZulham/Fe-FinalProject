@@ -1,4 +1,3 @@
-// components/properties/RoomCard.tsx
 "use client";
 
 import React from "react";
@@ -42,10 +41,9 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
 
   return (
     <div className={`bg-white rounded-2xl shadow-lg border-2 p-6 transition-all duration-300 hover:shadow-xl ${
-      isSelected ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-gray-200 hover:border-blue-300"
+      isSelected ? "border-[#2f567a] bg-[#2f567a]/10 ring-2 ring-[#2f567a]/30" : "border-gray-200 hover:border-[#2f567a]/50"
     }`}>
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Image Section */}
         <div className="relative lg:w-80">
           <Image 
             src={roomImages[0] || "/placeholder-room.jpg"} 
@@ -70,7 +68,6 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
           </div>
         </div>
         
-        {/* Content Section */}
         <div className="flex-1">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -78,12 +75,21 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
               <p className="text-gray-600 leading-relaxed">{room?.description || "Deskripsi kamar tidak tersedia."}</p>
             </div>
             <div className="text-right min-w-[120px]">
-              <div className="text-2xl font-bold text-blue-600">Rp {displayPrice.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-[#2f567a]">Rp {displayPrice.toLocaleString()}</div>
               <div className="text-sm text-gray-500">per malam</div>
+              {isPeakSeason && (
+                <div className="inline-block mt-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                  Peak Season
+                </div>
+              )}
+              {!isPeakSeason && checkInDate && checkOutDate && (
+                <div className="inline-block mt-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  Normal
+                </div>
+              )}
             </div>
           </div>
           
-          {/* Status */}
           <div className="flex items-center justify-between mb-4">
             <div className={`px-3 py-1 rounded-full text-sm font-medium ${
               room?.quota && room.quota > 0
@@ -94,13 +100,11 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
             </div>
           </div>
 
-          {/* Action Button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1"></div>
             <button
               onClick={() => {
                 onSelect(room);
-                // Scroll to booking sidebar on mobile
                 if (window.innerWidth < 768) {
                   setTimeout(() => {
                     const sidebar = document.getElementById('booking-sidebar');
@@ -114,7 +118,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
               className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
                 isSelected
                   ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md"
+                  : "bg-gradient-to-r from-[#2f567a] to-[#1e3a4f] hover:from-[#1e3a4f] hover:to-[#0f172a] text-white shadow-md"
               }`}
             >
               {isSelected ? (
@@ -130,7 +134,6 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
         </div>
       </div>
 
-      {/* Additional Info */}
       {room?.peakSeasons && room.peakSeasons.length > 0 && (
         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <div className="flex items-center text-amber-800 text-sm">

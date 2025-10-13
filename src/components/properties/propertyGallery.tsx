@@ -132,11 +132,9 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
             }}
           />
           
-          {/* Overlay effect */}
           <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-all duration-300" />
         </motion.div>
 
-        {/* Navigation Arrows - Only show if multiple images */}
         {visibleImages.length > 1 && (
           <>
             <button
@@ -160,14 +158,12 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
           </>
         )}
 
-        {/* Image Counter */}
         {visibleImages.length > 1 && (
           <div className="absolute top-4 right-4 z-10 text-white text-sm bg-black/50 rounded-full px-3 py-1">
             {currentIndex + 1} / {visibleImages.length}
           </div>
         )}
 
-        {/* Thumbnail Dots Indicator */}
         {visibleImages.length > 1 && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
             {visibleImages.map((_, index) => (
@@ -185,7 +181,6 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
           </div>
         )}
 
-        {/* View All Photos Button */}
         {visibleImages.length > 1 && (
           <button
             className="absolute bottom-4 right-4 z-10 text-white text-sm bg-black/50 rounded-full px-3 py-1 hover:bg-black/70 transition-colors"
@@ -196,7 +191,6 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
         )}
       </div>
 
-      {/* Image Modal - Full Screen Viewer */}
       <AnimatePresence>
         {selectedImage !== null && (
           <motion.div
@@ -206,7 +200,6 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
             className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 md:p-4"
             onClick={() => setSelectedImage(null)}
           >
-            {/* Close button */}
             <button
               className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-2 md:p-3"
               onClick={() => setSelectedImage(null)}
@@ -214,7 +207,6 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
               <X className="w-6 h-6 md:w-8 md:h-8" />
             </button>
 
-            {/* Navigation buttons */}
             {visibleImages.length > 1 && (
               <>
                 <button
@@ -238,12 +230,10 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
               </>
             )}
 
-            {/* Image counter */}
             <div className="absolute top-4 left-4 z-10 text-white text-sm md:text-base bg-black/50 rounded-full px-3 py-2">
               {selectedImage + 1} / {visibleImages.length}
             </div>
 
-            {/* Main image with touch support */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -268,7 +258,6 @@ const PropertyGallery: React.FC<Props> = ({ images, name }) => {
               />
             </motion.div>
 
-            {/* Thumbnail strip */}
             {visibleImages.length > 1 && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-full overflow-x-auto px-4 py-2">
                 {visibleImages.map((src, index) => (

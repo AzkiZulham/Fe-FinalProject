@@ -1,4 +1,3 @@
-// components/properties/ReviewList.tsx
 "use client";
 
 import React from "react";
@@ -40,7 +39,6 @@ const ReviewList: React.FC<Props> = ({ reviews }) => {
               transition={{ delay: index * 0.1 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300"
             >
-              {/* Review Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
@@ -65,17 +63,15 @@ const ReviewList: React.FC<Props> = ({ reviews }) => {
                 </div>
               </div>
 
-              {/* Review Content */}
               <p className="text-gray-700 leading-relaxed mb-4">{review.comment}</p>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Load More Button (if needed) */}
       {reviews.length > 5 && (
         <div className="text-center">
-          <button className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors font-medium">
+          <button className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:border-[#2f567a] hover:text-[#2f567a] transition-colors font-medium">
             Tampilkan Lebih Banyak Ulasan
           </button>
         </div>
