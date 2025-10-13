@@ -60,6 +60,8 @@ export interface UserOrderDetail {
       city: string;
       address: string;
       userId: number;
+      noRekening?: string | null;
+      destinationBank?: string | null;
     } | null;
   } | null;
   payment: {
