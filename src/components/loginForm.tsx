@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/authContext"; // sesuaikan path
+import { useAuth } from "@/context/authContext"; 
 
 
 type Props = {
@@ -29,7 +29,7 @@ const LoginSchema = Yup.object().shape({
 
 export default function LoginForm({ role, redirectOnSuccess }: Props) {
   const router = useRouter();
-  const { login } = useAuth(); // 🔹 ambil fungsi login dari context
+  const { login } = useAuth(); 
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,17 +54,14 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
 
       if (!res.ok) {
         setServerError(data?.message || data?.error || `Login gagal (status ${res.status})`);
-        
+
         return;
       }
-      const destination = redirectOnSuccess || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
-      router.push(data.redirect || destination);
 
-      // 🔹 Simpan user + token ke context (dan localStorage otomatis)
       login(data.user, data.token);
 
-      // Redirect
-      router.push(data.redirect || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile"));
+      const destination = redirectOnSuccess || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
+      router.push(data.redirect || destination);
     } catch (err: unknown) {
       console.error("Login error:", err);
       setServerError("Terjadi kesalahan jaringan. Coba lagi.");
@@ -92,7 +89,6 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
       >
         {({ isSubmitting }) => (
           <Form aria-label={`${role}-login-form`} className="space-y-4">
-            {/* Email */}
             <div>
               <label
                 htmlFor={`email-${role}`}
@@ -116,7 +112,6 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label
                 htmlFor={`password-${role}`}
@@ -149,14 +144,12 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               />
             </div>
 
-            {/* Server error */}
             {serverError && (
               <div role="alert" className="text-sm text-red-600">
                 {serverError}
               </div>
             )}
 
-            {/* Actions */}
             <div className="space-y-3">
               <button
                 type="submit"
@@ -188,7 +181,6 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         )}
       </Formik>
 
-      {/* Separator */}
       <div className="flex items-center my-6">
         <hr className="flex-grow border-gray-300 dark:border-gray-600" />
         <span className="mx-3 text-sm text-gray-500 dark:text-gray-400">
@@ -197,7 +189,6 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         <hr className="flex-grow border-gray-300 dark:border-gray-600" />
       </div>
 
-      {/* Social login */}
       <div className="space-y-3">
         <button
           onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
@@ -208,7 +199,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         </button>
 
         <button
-          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
+          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`}
           className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
         >
           <FaFacebook className="w-5 h-5" />

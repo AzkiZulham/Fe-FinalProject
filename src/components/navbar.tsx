@@ -13,22 +13,23 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const role = user?.role || "guest" || "USER" || "TENANT"; 
 
-  // 🔹 Menu berdasarkan role
 const navLinks =
   role === "USER"
     ? [
         { name: "Home", href: "/", icon: <Home size={18} /> },
+        { name: "Properti", href: "/property", icon: <Building size={18} /> },
         { name: "Pesanan", href: "/user/orders", icon: <ShoppingBag size={18} /> },
         { name: "Profile", href: "/user/profile", icon: <User size={18} /> },
       ]
     : role === "TENANT"
     ? [
-        { name: "Home", href: "/tenant/dashboard", icon: <Home size={18} /> },
+        { name: "Home", href: "/", icon: <Home size={18} /> },
+        { name: "Properti", href: "/property", icon: <Building size={18} /> },
         { name: "Dashboard", href: "/tenant/dashboard", icon: <LayoutDashboard size={18} /> },
       ]
     : [
-        { name: "Home", href: "/" },
-        { name: "Properti", href: "/properti" },
+        { name: "Home", href: "/", icon: <Home size={18} /> },
+        { name: "Properti", href: "/property", icon: <Building size={18} /> },
         {
           name: "Daftarkan Properti Anda",
           href: "/tenant",
