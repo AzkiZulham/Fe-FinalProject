@@ -40,6 +40,18 @@ export default function OrderDetailBody({ id }: { id: number }) {
 
   const showActions = order.status === "WAITING_FOR_PAYMENT";
 
+  const bank = order.roomType?.property?.destinationBank || "";
+  const rek = order.roomType?.property?.noRekening || "";
+
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Disalin ke clipboard");
+    } catch {
+      alert("Gagal menyalin");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -93,6 +105,38 @@ export default function OrderDetailBody({ id }: { id: number }) {
               Buka Link Pembayaran
             </a>
           )}
+        </div>
+
+        <div className="mt-2 rounded-md border p-3 bg-gray-50">
+          <div className="text-sm font-medium mb-2">Info Transfer Manual</div>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <div>
+              <div className="text-gray-500">Bank Tujuan</div>
+              <div className="font-medium">{bank || "—"}</div>
+            </div>
+            {bank && (
+              <button
+                onClick={() => copy(bank)}
+                className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+              >
+                Salin
+              </button>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+            <div>
+              <div className="text-gray-500">No. Rekening</div>
+              <div className="font-medium">{rek || "—"}</div>
+            </div>
+            {rek && (
+              <button
+                onClick={() => copy(rek)}
+                className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+              >
+                Salin
+              </button>
+            )}
+          </div>
         </div>
 
         {showActions && (
