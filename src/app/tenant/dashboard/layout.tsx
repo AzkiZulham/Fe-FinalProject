@@ -19,6 +19,8 @@ import {
   LogOut,
   ChevronsLeft,
   ChevronsRight,
+  BarChart2,
+  Newspaper,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
 
@@ -65,8 +67,21 @@ const sidebarSections: MenuSection[] = [
         name: "Availability & Pricing",
         icon: CalendarDays,
         children: [
-          { name: "Availability Calendar", href: "/dashboard/pricing/calendar" },
+          {
+            name: "Availability Calendar",
+            href: "/dashboard/pricing/calendar",
+          },
           { name: "Peak Season Rate", href: "/dashboard/pricing/peak" },
+        ],
+      },
+      {
+        name: "Transaction",
+        icon: Newspaper,
+        children: [
+          {
+            name: "Order List",
+            href: "/tenant/dashboard/transactions",
+          },
         ],
       },
       { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
@@ -351,29 +366,30 @@ export default function TenantDashboardLayout({
 
   return (
     <ProtectedPage role="TENANT">
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <MobileSidebar open={open} setOpen={setOpen} />
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar */}
+        <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <MobileSidebar open={open} setOpen={setOpen} />
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Mobile topbar */}
-        <div className="flex items-center justify-between p-4 bg-white shadow lg:hidden">
-          <button
-            onClick={() => setOpen(true)}
-            className="text-gray-700"
-            aria-label="Open sidebar"
-          >
-            <Menu size={22} />
-          </button>
-          <span className="font-bold">Tenant Dashboard</span>
-          <div className="w-6" />
+        {/* Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Mobile topbar */}
+          <div className="flex items-center justify-between p-4 bg-white shadow lg:hidden">
+            <button
+              onClick={() => setOpen(true)}
+              className="text-gray-700"
+              aria-label="Open sidebar"
+            >
+              <Menu size={22} />
+            </button>
+            <span className="font-bold">Tenant Dashboard</span>
+            <div className="w-6" />
+          </div>
+
+          <main className="flex-1 p-6 overflow-y-auto">{children}</main>
         </div>
-
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
       </div>
-    </div>
+      );
+    </ProtectedPage>
   );
-  </ProtectedPage>
-)}
+}
