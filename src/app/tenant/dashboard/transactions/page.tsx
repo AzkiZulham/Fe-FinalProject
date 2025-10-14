@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { axios } from "@/lib/axios";
 import StatusBadge from "@/components/statusBadge";
-import Modal from "@/components/modal/modal";
 import {
   TenantOrderDetail,
   TenantOrderItem,
@@ -167,7 +166,7 @@ export default function TenantTransactionsPage() {
               <th className="px-3 sm:px-4 py-2">Qty</th>
               <th className="px-3 sm:px-4 py-2">Total</th>
               <th className="px-3 sm:px-4 py-2">Status</th>
-              <th className="px-3 sm:px-4 py-2">Bukti</th>
+              <th className="px-3 sm:px-4 py-2">Aksi</th>
               <th className="px-3 sm:px-4 py-2"></th>
             </tr>
           </thead>
@@ -203,23 +202,11 @@ export default function TenantTransactionsPage() {
                     <StatusBadge status={o.status} />
                   </td>
                   <td className="px-3 sm:px-4 py-3">
-                    {o.payment?.paymentProof ? (
-                      <button
-                        onClick={() => openDetail(o.id)}
-                        className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
-                      >
-                        Detail
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 sm:px-4 py-3">
                     <button
                       onClick={() => openDetail(o.id)}
                       className="w-full sm:w-auto rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
                     >
-                      Lihat
+                      Detail
                     </button>
                   </td>
                 </tr>

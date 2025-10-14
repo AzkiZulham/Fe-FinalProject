@@ -5,6 +5,9 @@ import Modal from "@/components/modal/modal";
 import StatusBadge from "@/components/statusBadge";
 import { axios } from "@/lib/axios";
 import { TenantOrderDetail } from "@/lib/transaction/type";
+import PaymentProofPreview from "@/components/transaction/previewPaymentProof";
+import AcceptPaymentBtnTenant from "@/components/transaction/acceptTransaction";
+import RejectPaymentBtnTenant from "@/components/transaction/rejectTransaction";
 
 type Props = {
   open: boolean;
@@ -104,6 +107,36 @@ export default function TransactionDetailModal({
               </div>
               <div className="text-sm">Qty: {detail.qty}</div>
             </div>
+          </div>
+
+          <div className="rounded-lg border p-3">
+            <h4 className="font-medium mb-2">Bukti Pembayaran</h4>
+            <PaymentProofPreview src={detail.payment?.paymentProof ?? null} />
+            <div className="mt-3 text-sm text-gray-700 space-y-1">
+              <div>Metode: {detail.payment?.method ?? "-"}</div>
+              <div>Status: {detail.payment?.paymentStatus ?? "-"}</div>
+              {detail.payment?.paidAt && (
+                <div>
+                  Dibayar pada:{" "}
+                  {new Date(detail.payment.paidAt).toLocaleString("id-ID")}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            {canConfirmReject && detail.id && (
+              <>
+                <AcceptPaymentBtnTenant
+                  orderId={detail.id}
+                  onDone={afterAction}
+                />
+                <RejectPaymentBtnTenant
+                  orderId={detail.id}
+                  onDone={afterAction}
+                />
+              </>
+            )}
           </div>
         </div>
       )}

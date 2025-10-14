@@ -3,6 +3,7 @@ import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { axios } from "@/lib/axios";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const MAX_SIZE = 1_000_000; // 1MB
 const ALLOWED = ["image/jpeg", "image/png"];
@@ -32,6 +33,8 @@ export default function UploadPaymentProofFormik({
   const [serverErr, setServerErr] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const router = useRouter();
+
   return (
     <div className="rounded-lg border p-4">
       <h4 className="font-medium mb-3">Upload Bukti Pembayaran</h4>
@@ -58,6 +61,7 @@ export default function UploadPaymentProofFormik({
             );
             onDone?.();
             resetForm();
+            router.push("/user/orders");
           } catch (e: unknown) {
             const error = e as {
               response?: { data?: { error?: string; message?: string } };
@@ -74,12 +78,7 @@ export default function UploadPaymentProofFormik({
           }
         }}
       >
-        {({
-          isSubmitting,
-          setFieldValue,
-          setFieldTouched,
-          getFieldProps,
-        }) => (
+        {({ isSubmitting, setFieldValue, setFieldTouched, getFieldProps }) => (
           <Form className="space-y-3">
             <input type="hidden" {...getFieldProps("transactionId")} readOnly />
 
