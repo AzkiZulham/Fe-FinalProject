@@ -9,6 +9,7 @@ import PaymentProofPreview from "@/components/transaction/previewPaymentProof";
 import AcceptPaymentBtnTenant from "@/components/transaction/acceptTransaction";
 import RejectPaymentBtnTenant from "@/components/transaction/rejectTransaction";
 import CancelOrderBtnTenant from "@/components/transaction/cancelTransaction";
+import ReplyReviewFormik from "@/components/transaction/reply-review/replyReviewFormik";
 
 type Props = {
   open: boolean;
@@ -142,6 +143,14 @@ export default function TransactionDetailModal({
               </>
             )}
           </div>
+          {detail && (
+            <ReplyReviewFormik
+              transactionId={detail.id}
+              orderStatus={detail.status as any}
+              checkOutDateISO={detail.checkOutDate}
+              onDone={afterAction}
+            />
+          )}
         </div>
       )}
     </Modal>
