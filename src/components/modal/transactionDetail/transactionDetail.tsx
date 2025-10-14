@@ -8,6 +8,7 @@ import { TenantOrderDetail } from "@/lib/transaction/type";
 import PaymentProofPreview from "@/components/transaction/previewPaymentProof";
 import AcceptPaymentBtnTenant from "@/components/transaction/acceptTransaction";
 import RejectPaymentBtnTenant from "@/components/transaction/rejectTransaction";
+import CancelOrderBtnTenant from "@/components/transaction/cancelTransaction";
 
 type Props = {
   open: boolean;
@@ -125,6 +126,9 @@ export default function TransactionDetailModal({
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
+            {canCancel && detail.id && (
+              <CancelOrderBtnTenant orderId={detail.id} onDone={afterAction} />
+            )}
             {canConfirmReject && detail.id && (
               <>
                 <AcceptPaymentBtnTenant
