@@ -43,13 +43,13 @@ export default function PropertySearchPage() {
         adultQty: adultQty ? parseInt(adultQty) : undefined,
         childQty: childQty ? parseInt(childQty) : undefined,
         roomQty: roomQty ? parseInt(roomQty) : undefined,
+        page,
       };
       fetchSearchResults(criteria);
     } else {
-      // If no city, redirect to main property page
       router.push("/property");
     }
-  }, [searchParams]);
+  }, [searchParams, page]);
 
   const fetchSearchResults = async (criteria: any) => {
     try {
@@ -69,7 +69,7 @@ export default function PropertySearchPage() {
     }
   };
 
-  const handleSearchAgain = (results: CatalogProperty[], criteria: any) => {
+  const handleSearchAgain = async (criteria: any) => {
     const params = new URLSearchParams();
     if (criteria.city) params.set("city", criteria.city);
     if (criteria.checkIn) params.set("checkIn", criteria.checkIn);
@@ -80,8 +80,7 @@ export default function PropertySearchPage() {
 
     router.push(`/property/search?${params.toString()}`);
   };
-
-  if (loading) {
+    if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -15,12 +15,20 @@ interface CatalogProperty {
   availableRooms?: number;
   rating?: number;
   reviewCount?: number;
+  totalTransactions?: number; 
 }
+
+type LocationData = {
+  lat: number;
+  lng: number;
+  city: string;
+};
 
 interface Props {
   properties?: CatalogProperty[];
   limit?: number;
   showSection?: boolean;
+  location?: LocationData | null;
 }
 
 function PropertyCard({ property }: { property: CatalogProperty }) {
@@ -60,6 +68,11 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
                 {property.reviewCount && (
                   <span className="text-gray-400">({property.reviewCount})</span>
                 )}
+                {property.totalTransactions && (
+                <div className="text-xs text-gray-500 mt-1">
+                  Dipesan {property.totalTransactions} kali
+                </div>
+              )}
               </div>
             )}
           </div>
@@ -117,7 +130,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function PropertyList({ properties: initialProperties = [], limit, showSection = true }: Props) {
+export default function PropertyList({ properties: initialProperties = [], limit, showSection = true, location }: Props) {
   const [properties, setProperties] = useState<CatalogProperty[]>(initialProperties);
   const [loading, setLoading] = useState(initialProperties.length === 0);
 
@@ -126,14 +139,17 @@ export default function PropertyList({ properties: initialProperties = [], limit
       const fetchProperties = async () => {
         try {
           setLoading(true);
+          const params: any = {
+            page: 1,
+            limit: limit || 6,
+          };
+          if (location) {
+            params.lat = location.lat;
+            params.lng = location.lng;
+          }
           const res = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/properties`,
-            {
-              params: {
-                page: 1,
-                limit: limit || 6,
-              },
-            }
+            `${process.env.NEXT_PUBLIC_API_URL}/api/properties/top`,
+            { params: { limit: limit || 6 } }
           );
           setProperties(res.data.data || []);
         } catch (error) {
@@ -148,7 +164,7 @@ export default function PropertyList({ properties: initialProperties = [], limit
     } else {
       setLoading(false);
     }
-  }, [initialProperties.length, limit]);
+  }, [initialProperties.length, limit, location]);
 
   if (loading) {
     return showSection ? <LoadingSkeleton /> : <LoadingSkeleton />;
@@ -187,12 +203,12 @@ export default function PropertyList({ properties: initialProperties = [], limit
   return (
     <section className="py-12 px-4 max-w-7xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Properti Unggulan
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Temukan penginapan terbaik untuk liburan Anda dengan fasilitas lengkap dan harga terjangkau
-        </p>
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        Properti Terpopuler
+      </h2>
+      <p className="text-gray-600 max-w-2xl mx-auto">
+        Penginapan dengan jumlah pemesanan terbanyak minggu ini
+      </p>
       </div>
       {content}
       <div className="text-center mt-15">

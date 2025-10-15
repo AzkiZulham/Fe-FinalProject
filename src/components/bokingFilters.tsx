@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Select from "react-select";
 import { ChevronDown, MapPin, Calendar, Users, Search } from "lucide-react";
 
 type CityOption = { value: string; label: string; lat: number; lng: number };
-type Location = { lat: number; lng: number };
 
 const cityOptions: CityOption[] = [
   { value: "jakarta", label: "Jakarta", lat: -6.2, lng: 106.8 },
@@ -30,81 +29,21 @@ const cityOptions: CityOption[] = [
   { value: "denpasar", label: "Denpasar", lat: -8.65, lng: 115.22 },
 ];
 
-function useGeoCity() {
-  const [city, setCity] = useState<CityOption | null>(null);
-  const [location, setLocation] = useState<Location | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!("geolocation" in navigator)) {
-      // console.log("Geolocation not supported");
-      setCity(cityOptions[0]);
-      setLoading(false);
-      return;
-    }
-
-    console.log("Requesting geolocation permission...");
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        console.log("Geolocation success:", coords);
-        const loc = { lat: coords.latitude, lng: coords.longitude };
-        setLocation(loc);
-
-        try {
-          // console.log("Calling reverse geocoding API...");
-          const response = await fetch(`http://localhost:8000/api/booking/location?lat=${loc.lat}&lng=${loc.lng}`);
-          // console.log("API response status:", response.status);
-          if (response.ok) {
-            const data = await response.json();
-            // console.log("API response data:", data);
-            if (data.success && data.data.city) {
-              const detectedCity: CityOption = {
-                value: data.data.city.toLowerCase(),
-                label: data.data.city,
-                lat: loc.lat,
-                lng: loc.lng
-              };
-              // console.log("Detected city:", detectedCity);
-              setCity(detectedCity);
-            } else {
-              // console.log("No city detected, using default city");
-              setCity(cityOptions[0]);
-            }
-          } else {
-            // console.log("API failed, using default city");
-            setCity(cityOptions[0]);
-          }
-        } catch (error) {
-          console.error("Geolocation API error:", error);
-          setCity(cityOptions[0]);
-        }
-
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        setCity(cityOptions[0]); 
-        setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000 
-      }
-    );
-  }, []);
-
-  return { city, setCity, location, loading };
-}
-
 type BookingFilterProps = {
-  onSearch?: (results: any[], criteria: any) => void;
-  initialCriteria?: any;
   noHeroMargin?: boolean;
+  onSearch?: (criteria: any) => void;
+  initialCriteria?: {
+    city?: string;
+    checkIn?: string;
+    checkOut?: string;
+    adultQty?: number;
+    childQty?: number;
+    roomQty?: number;
+  };
 };
 
-export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin = false }: BookingFilterProps) {
-  const { city, setCity, location, loading } = useGeoCity();
+export default function BookingFilter({ noHeroMargin = false, onSearch, initialCriteria }: BookingFilterProps) {
+  const [city, setCity] = useState<CityOption | null>(initialCriteria?.city ? cityOptions.find(c => c.value === initialCriteria.city) || null : null);
   const [checkIn, setCheckIn] = useState(initialCriteria?.checkIn || "");
   const [checkOut, setCheckOut] = useState(initialCriteria?.checkOut || "");
   const [adultQty, setAdultQty] = useState(initialCriteria?.adultQty || 1);
@@ -112,37 +51,28 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
   const [roomQty, setRoomQty] = useState(initialCriteria?.roomQty || 1);
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    if (initialCriteria?.city && !loading) {
-      const initialCity = cityOptions.find(c => c.value === initialCriteria.city);
-      if (initialCity) {
-        setCity(initialCity);
-      }
-    }
-  }, [initialCriteria, loading, setCity]);
-
-  const handleSearch = async () => {
-    const payload = { city: city?.value, checkIn, checkOut, location, adultQty, childQty, roomQty };
-    console.log("Cari properti dengan:", payload);
-
-    const params = new URLSearchParams();
-    if (payload.city) params.set("city", payload.city);
-    if (payload.checkIn) params.set("checkIn", payload.checkIn);
-    if (payload.checkOut) params.set("checkOut", payload.checkOut);
-    if (payload.adultQty) params.set("adultQty", payload.adultQty.toString());
-    if (payload.childQty) params.set("childQty", payload.childQty.toString());
-    if (payload.roomQty) params.set("roomQty", payload.roomQty.toString());
-
-    window.location.href = `/property/search?${params.toString()}`;
-
+  // 🧭 Handle cari properti
+  const handleSearch = () => {
     if (onSearch) {
-      const res = await fetch("http://localhost:8000/api/booking/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      onSearch(data.data || [], payload);
+      const criteria = {
+        city: city?.value,
+        checkIn,
+        checkOut,
+        adultQty,
+        childQty,
+        roomQty,
+      };
+      onSearch(criteria);
+    } else {
+      const params = new URLSearchParams();
+      if (city?.value) params.set("city", city.value);
+      if (checkIn) params.set("checkIn", checkIn);
+      if (checkOut) params.set("checkOut", checkOut);
+      if (adultQty) params.set("adultQty", adultQty.toString());
+      if (childQty) params.set("childQty", childQty.toString());
+      if (roomQty) params.set("roomQty", roomQty.toString());
+
+      window.location.href = `/property/search?${params.toString()}`;
     }
   };
 
@@ -161,13 +91,12 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
   return (
     <div className={containerClass}>
       {/* Kota Tujuan */}
-      <Field label="Lokasi" icon={<MapPin className="w-4 h-4" />}>
+      <Field label="Kota Tujuan" icon={<MapPin className="w-4 h-4" />}>
         <Select
           options={cityOptions}
           value={city}
           onChange={(opt) => setCity(opt)}
-          placeholder={loading ? "Mendeteksi lokasi..." : "Pilih kota atau area"}
-          isDisabled={loading}
+          placeholder="Pilih kota atau area"
           className="mt-1"
           components={{
             DropdownIndicator: () => <ChevronDown className="w-4 h-4 text-gray-500 mr-2" />,
@@ -177,21 +106,21 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
           styles={{
             control: (provided, state) => ({
               ...provided,
-              padding: '6px 8px',
-              borderRadius: '12px',
-              border: state.isFocused ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-              boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+              padding: "6px 8px",
+              borderRadius: "12px",
+              border: state.isFocused ? "2px solid #3b82f6" : "2px solid #e5e7eb",
+              boxShadow: state.isFocused ? "0 0 0 3px rgba(59, 130, 246, 0.1)" : "none",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
               },
             }),
             placeholder: (provided) => ({
               ...provided,
-              color: '#9ca3af',
-              fontSize: '14px',
+              color: "#9ca3af",
+              fontSize: "14px",
             }),
-            menuPortal: base => ({ ...base, zIndex: 9999 }),
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           }}
         />
       </Field>
@@ -208,6 +137,7 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
         icon={<Calendar className="w-4 h-4" />}
       />
 
+      {/* Check-out */}
       <DateInput
         label="Check-out"
         value={checkOut}
@@ -216,89 +146,32 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
         icon={<Calendar className="w-4 h-4" />}
       />
 
+      {/* Jumlah tamu & kamar */}
       <Field label="Tamu & Kamar" icon={<Users className="w-4 h-4" />}>
         <div className="relative">
           <div
             className="mt-1 w-full border-2 border-gray-200 rounded-xl px-4 py-3 cursor-pointer bg-white flex justify-between items-center transition-all duration-200 hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100"
             onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
           >
-            <span className={`${!adultQty && !childQty && !roomQty ? 'text-gray-400' : 'text-gray-700'}`}>
+            <span className={`${!adultQty && !childQty && !roomQty ? "text-gray-400" : "text-gray-700"}`}>
               {formatGuestText()}
             </span>
-            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isGuestDropdownOpen ? "rotate-180" : ""
+                }`}
+            />
           </div>
-          
+
           {isGuestDropdownOpen && (
             <div className="absolute top-full left-0 right-0 bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[9999] p-6 mt-2 space-y-4">
+              {/* Dewasa */}
+              <GuestCounter label="Dewasa" sub="Usia 13+" value={adultQty} setValue={setAdultQty} min={1} />
 
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-gray-900">Dewasa</div>
-                  <div className="text-sm text-gray-500">Usia 13+</div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setAdultQty(Math.max(1, adultQty - 1))}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={adultQty <= 1}
-                  >
-                    −
-                  </button>
-                  <span className="w-8 text-center font-semibold text-gray-900">{adultQty}</span>
-                  <button
-                    onClick={() => setAdultQty(adultQty + 1)}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+              {/* Anak */}
+              <GuestCounter label="Anak" sub="Usia 2-12" value={childQty} setValue={setChildQty} min={0} />
 
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-gray-900">Anak</div>
-                  <div className="text-sm text-gray-500">Usia 2-12</div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setChildQty(Math.max(0, childQty - 1))}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={childQty <= 0}
-                  >
-                    −
-                  </button>
-                  <span className="w-8 text-center font-semibold text-gray-900">{childQty}</span>
-                  <button
-                    onClick={() => setChildQty(childQty + 1)}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-gray-900">Kamar</div>
-                  <div className="text-sm text-gray-500">Jumlah kamar</div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setRoomQty(Math.max(1, roomQty - 1))}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={roomQty <= 1}
-                  >
-                    −
-                  </button>
-                  <span className="w-8 text-center font-semibold text-gray-900">{roomQty}</span>
-                  <button
-                    onClick={() => setRoomQty(roomQty + 1)}
-                    className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+              {/* Kamar */}
+              <GuestCounter label="Kamar" sub="Jumlah kamar" value={roomQty} setValue={setRoomQty} min={1} />
 
               <div className="pt-4 border-t border-gray-200">
                 <button
@@ -313,26 +186,14 @@ export default function BookingFilter({ onSearch, initialCriteria, noHeroMargin 
         </div>
       </Field>
 
+      {/* Tombol Cari */}
       <button
         onClick={handleSearch}
-        disabled={loading || !city}
-        className={`font-semibold px-10 py-4 rounded-xl transition-all duration-300 md:self-stretch flex items-center justify-center gap-3 min-w-[140px] ${
-          loading || !city
-            ? "bg-gray-300 cursor-not-allowed text-gray-500"
-            : "bg-gradient-to-r from-[#2f567a] to-blue-700 hover:from-[#7ba2c5] hover:to-blue-800 shadow-lg hover:shadow-xl hover:scale-105 text-white"
-        }`}
+        disabled={!city}
+        className="font-semibold px-10 py-4 rounded-xl bg-gradient-to-r from-[#2f567a] to-blue-700 hover:scale-105 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
-        {loading ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Loading...
-          </>
-        ) : (
-          <>
-            <Search className="w-5 h-5" />
-            Cari
-          </>
-        )}
+        <Search className="w-5 h-5" />
+        Cari
       </button>
     </div>
   );
@@ -365,15 +226,52 @@ function DateInput({
 }) {
   return (
     <Field label={label} icon={icon}>
-      <div className="relative">
-        <input
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="mt-1 w-full border-2 border-gray-200 rounded-xl px-4 py-3 bg-white transition-all duration-200 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 cursor-pointer"
-          min={min}
-        />
-      </div>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        min={min}
+        className="mt-1 w-full border-2 border-gray-200 rounded-xl px-4 py-3 bg-white transition-all duration-200 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 cursor-pointer"
+      />
     </Field>
+  );
+}
+
+function GuestCounter({
+  label,
+  sub,
+  value,
+  setValue,
+  min,
+}: {
+  label: string;
+  sub: string;
+  value: number;
+  setValue: (v: number) => void;
+  min: number;
+}) {
+  return (
+    <div className="flex justify-between items-center">
+      <div>
+        <div className="font-medium text-gray-900">{label}</div>
+        <div className="text-sm text-gray-500">{sub}</div>
+      </div>
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={() => setValue(Math.max(min, value - 1))}
+          className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={value <= min}
+        >
+          −
+        </button>
+        <span className="w-8 text-center font-semibold text-gray-900">{value}</span>
+        <button
+          onClick={() => setValue(value + 1)}
+          className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
+        >
+          +
+        </button>
+      </div>
+    </div>
   );
 }
