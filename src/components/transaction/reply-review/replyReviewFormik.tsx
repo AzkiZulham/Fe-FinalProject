@@ -102,7 +102,7 @@ export default function ReplyReviewFormik({
         </div>
       )}
 
-      {!loading && canReply && review && !review.tenantReply && (
+      {!loading && canReply && review && (
         <Formik
           initialValues={{ reply: review.tenantReply || "" }}
           enableReinitialize
