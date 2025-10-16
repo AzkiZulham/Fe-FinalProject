@@ -84,7 +84,20 @@ const sidebarSections: MenuSection[] = [
           },
         ],
       },
-      { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
+      {
+        name: "Reports",
+        icon: BarChart3,
+        children: [
+          {
+            name: "Sales Report",
+            href: "/tenant/dashboard/sales",
+          },
+          {
+            name: "Property Report",
+            href: "/tenant/dashboard/property-report",
+          },
+        ],
+      },
     ],
   },
   {
