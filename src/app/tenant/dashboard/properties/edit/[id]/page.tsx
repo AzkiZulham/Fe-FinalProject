@@ -1,0 +1,748 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import axios from "axios";
+import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import Image from "next/image";
+import ProtectedPage from "@/components/protectedPage";
+
+type RoomType = {
+  id?: number;
+  roomName: string;
+  price: number;
+  description?: string;
+  roomImg?: string;
+  quota?: number;
+  adultQty?: number;
+  childQty?: number;
+  peakSeasons?: {
+    id: number;
+    startDate: string;
+    endDate: string;
+    percentage?: number | null;
+    nominal?: number | null;
+  }[];
+};
+
+
+type PropertyCategory = {
+  id: number;
+  category: string;
+};
+
+type Property = {
+  id: number;
+  name: string;
+  address: string;
+  description?: string;
+  picture?: string;
+  categoryId?: number;
+  roomTypes: RoomType[];
+};
+
+type PropertyResponse = {
+  property: Property;
+  reviews: any[];
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const validationSchema = Yup.object({
+  name: Yup.string()
+    .required("Nama properti wajib diisi")
+    .min(3, "Nama properti minimal 3 karakter")
+    .max(100, "Nama properti maksimal 100 karakter"),
+  address: Yup.string()
+    .required("Alamat wajib diisi")
+    .min(10, "Alamat minimal 10 karakter")
+    .max(500, "Alamat maksimal 500 karakter"),
+  description: Yup.string()
+    .max(1000, "Deskripsi maksimal 1000 karakter")
+    .optional(),
+  categoryId: Yup.string().optional(),
+  roomTypes: Yup.array()
+    .of(
+      Yup.object({
+        roomName: Yup.string()
+          .required("Nama tipe kamar wajib diisi")
+          .min(2, "Nama tipe kamar minimal 2 karakter")
+          .max(50, "Nama tipe kamar maksimal 50 karakter"),
+        price: Yup.number()
+          .required("Harga wajib diisi")
+          .min(0, "Harga tidak boleh negatif")
+          .max(10000000, "Harga maksimal 10 juta"),
+      })
+    )
+    .min(1, "Minimal harus ada 1 tipe kamar"),
+});
+
+export default function EditPropertyPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const [property, setProperty] = useState<Property | null>(null);
+  const [categories, setCategories] = useState<PropertyCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [removeOldPicture, setRemoveOldPicture] = useState(false);
+  const [descriptionLength, setDescriptionLength] = useState(0);
+
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      try {
+        const [propertyRes, categoryRes] = await Promise.all([
+          axios.get<PropertyResponse>(`${API_URL}/api/properties/dashboard/${id}`, {
+            headers: { Authorization: token ? `Bearer ${token}` : "" },
+          }),
+          axios.get<PropertyCategory[]>(`${API_URL}/api/properties/dashboard/categories`, {
+            headers: { Authorization: token ? `Bearer ${token}` : "" },
+          }),
+        ]);
+        // Ensure all descriptions are strings, not null
+        const processedProperty = {
+          ...propertyRes.data.property,
+          description: propertyRes.data.property.description || "",
+          roomTypes: propertyRes.data.property.roomTypes.map((room: any) => ({
+            ...room,
+            description: room.description || "",
+          })),
+        };
+
+        setProperty(processedProperty);
+        setCategories(categoryRes.data);
+        setPreview(processedProperty.picture || null);
+        setDescriptionLength(processedProperty.description?.length || 0);
+      } catch (err) {
+        console.error(err);
+        alert("Gagal memuat data properti");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, token]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    // Validasi ukuran file (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file maksimal 5MB");
+      return;
+    }
+    
+    // Validasi tipe file
+    if (!file.type.startsWith('image/')) {
+      alert("File harus berupa gambar");
+      return;
+    }
+    
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+    setRemoveOldPicture(true);
+  };
+
+  const handleRemovePicture = () => {
+    setSelectedFile(null);
+    setPreview(null);
+    setRemoveOldPicture(true);
+  };
+
+  const handleCancel = () => {
+    if (window.confirm("Perubahan yang belum disimpan akan hilang. Lanjutkan?")) {
+      router.push("/tenant/dashboard/properties");
+    }
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>, setFieldValue: any) => {
+    const value = e.target.value;
+    setDescriptionLength(value.length);
+    setFieldValue("description", value);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mb-4"></div>
+        <p className="text-gray-600 text-lg">Memuat data properti...</p>
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+            <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Properti Tidak Ditemukan</h2>
+          <p className="text-gray-600 mb-8">Properti yang Anda cari tidak ditemukan atau telah dihapus.</p>
+          <button
+            onClick={() => router.push("/tenant/dashboard/properties")}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            Kembali ke Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProtectedPage role="TENANT">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <button
+              onClick={handleCancel}
+              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Kembali ke Daftar Properti
+            </button>
+            
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Properti</h1>
+                <p className="text-gray-600">Perbarui informasi properti dan tipe kamar yang tersedia</p>
+              </div>
+              <div className="mt-4 lg:mt-0">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  ID: {property.id}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <Formik
+              enableReinitialize
+              validationSchema={validationSchema}
+              initialValues={{
+                name: property.name,
+                address: property.address,
+                description: property.description || "",
+                categoryId: property.categoryId || "",
+                roomTypes: property.roomTypes || [],
+              }}
+              onSubmit={async (values) => {
+                setSubmitting(true);
+                try {
+                  const formData = new FormData();
+                  formData.append("name", values.name.trim());
+                  formData.append("address", values.address.trim());
+                  formData.append("description", values.description.trim());
+                  formData.append("categoryId", values.categoryId?.toString() || "");
+                  formData.append("roomTypes", JSON.stringify(values.roomTypes));
+
+                  if (selectedFile) formData.append("picture", selectedFile);
+                  if (removeOldPicture) formData.append("removeOldPicture", "true");
+
+                  await axios.put(`${API_URL}/api/properties/dashboard/${id}`, formData, {
+                    headers: {
+                      Authorization: token ? `Bearer ${token}` : "",
+                      "Content-Type": "multipart/form-data",
+                    },
+                  });
+
+                  // Show success message
+                  alert("Properti berhasil diperbarui!");
+                  router.push("/tenant/dashboard/properties");
+                } catch (err) {
+                  console.error(err);
+                  alert("Gagal update property. Silakan coba lagi.");
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {({ values, errors, touched, setFieldValue }) => (
+                <Form className="p-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Left Column - Basic Info */}
+                    <div className="space-y-6">
+                      {/* Name */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nama Properti <span className="text-red-500">*</span>
+                        </label>
+                        <Field
+                          name="name"
+                          required
+                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 ${
+                            errors.name && touched.name ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Masukkan nama properti"
+                        />
+                        {errors.name && touched.name && (
+                          <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                        )}
+                      </div>
+
+                      {/* Address */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Alamat Lengkap <span className="text-red-500">*</span>
+                        </label>
+                        <Field
+                          as="textarea"
+                          name="address"
+                          required
+                          rows={4}
+                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none ${
+                            errors.address && touched.address ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Masukkan alamat lengkap properti"
+                        />
+                        {errors.address && touched.address && (
+                          <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Deskripsi Properti
+                          <span className="text-xs font-normal text-gray-500 ml-1">
+                            (Opsional - maksimal 1000 karakter)
+                          </span>
+                        </label>
+                        <div className="relative">
+                          <Field
+                            as="textarea"
+                            name="description"
+                            rows={5}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none ${
+                              errors.description && touched.description ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            placeholder="Deskripsikan properti Anda..."
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                              handleDescriptionChange(e, setFieldValue)
+                            }
+                          />
+                          {/* Character Counter */}
+                          <div className="absolute bottom-3 right-3">
+                            <span className={`text-xs ${
+                              descriptionLength > 1000 ? 'text-red-500' : 
+                              descriptionLength > 800 ? 'text-yellow-500' : 'text-gray-400'
+                            }`}>
+                              {descriptionLength}/1000
+                            </span>
+                          </div>
+                        </div>
+                        {errors.description && touched.description && (
+                          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                        )}
+                        <p className="mt-2 text-xs text-gray-500">
+                          Tips: Jelaskan fasilitas, keunggulan lokasi, dan hal menarik lainnya tentang properti Anda.
+                        </p>
+                      </div>
+
+                      {/* Category */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Kategori Properti
+                        </label>
+                        <Field
+                          as="select"
+                          name="categoryId"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 appearance-none"
+                        >
+                          <option value="">Pilih Kategori</option>
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.category}
+                            </option>
+                          ))}
+                        </Field>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Image */}
+                    <div className="space-y-6">
+                      {/* Picture Upload */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Foto Properti
+                        </label>
+                        
+                        {/* Preview */}
+                        {preview && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+                              <Image
+                                src={preview}
+                                alt="Preview properti"
+                                fill
+                                className="object-cover"
+                                loader={({ src }) => src} 
+                                unoptimized
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleRemovePicture}
+                                className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-lg"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* File Input */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors duration-200 bg-gray-50">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="hidden"
+                            id="picture-upload"
+                          />
+                          <label
+                            htmlFor="picture-upload"
+                            className="cursor-pointer block"
+                          >
+                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="mt-2 text-sm text-gray-600">
+                              <span className="font-medium text-blue-600 hover:text-blue-500">
+                                Upload foto baru
+                              </span>{' '}
+                              atau drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              PNG, JPG, JPEG (Maks. 5MB)
+                            </p>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Description Tips */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Tips Deskripsi yang Menarik
+                        </h4>
+                        <ul className="text-xs text-blue-700 space-y-1">
+                          <li>• Jelaskan fasilitas terdekat (mall, rumah sakit, transportasi)</li>
+                          <li>• Sebutkan keunggulan lokasi properti</li>
+                          <li>• Deskripsikan fasilitas yang tersedia</li>
+                          <li>• Tambahkan informasi unik tentang properti</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Room Types Section */}
+                  <div className="mt-8 pt-8 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Tipe Kamar</h3>
+                        <p className="text-sm text-gray-600">Kelola jenis kamar dan harga yang tersedia</p>
+                      </div>
+                    </div>
+
+                    <FieldArray name="roomTypes">
+                      {({ push, remove }) => (
+                        <div className="space-y-6">
+                          {values.roomTypes.length === 0 ? (
+                            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50/50 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/30">
+                              <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <svg className="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                </svg>
+                              </div>
+                              <h3 className="text-lg font-medium text-gray-700 mb-1">Belum ada tipe kamar</h3>
+                              <p className="text-sm text-gray-500 max-w-md mx-auto">Tambahkan tipe kamar pertama Anda untuk mulai mengelola properti</p>
+                            </div>
+                          ) : (
+                            values.roomTypes.map((room, index) => (
+                              <div
+                                key={index}
+                                className="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all duration-300 space-y-6 relative group"
+                              >
+                                {/* Header dengan nomor dan tombol hapus */}
+                                <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                                  <div className="flex items-center">
+                                    <div className="h-8 w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
+                                      {index + 1}
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Tipe Kamar {index + 1}</h3>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => remove(index)}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                {/* Nama dan Harga */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                      Nama Tipe Kamar <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                      name={`roomTypes.${index}.roomName`}
+                                      placeholder="Contoh: Deluxe Room, Suite Executive"
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                    />
+                                    <ErrorMessage 
+                                      name={`roomTypes.${index}.roomName`} 
+                                      component="div" 
+                                      className="text-red-500 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                      Harga per Malam <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                                      <Field
+                                        name={`roomTypes.${index}.price`}
+                                        type="number"
+                                        min="0"
+                                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                      />
+                                    </div>
+                                    <ErrorMessage 
+                                      name={`roomTypes.${index}.price`} 
+                                      component="div" 
+                                      className="text-red-500 text-xs mt-1" 
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Deskripsi */}
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Kamar</label>
+                                  <Field
+                                    as="textarea"
+                                    name={`roomTypes.${index}.description`}
+                                    rows={3}
+                                    placeholder="Tuliskan deskripsi singkat tentang fasilitas dan keunggulan kamar ini..."
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                                  />
+                                </div>
+
+                                {/* Kuota dan Jumlah Orang */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                      Kuota Kamar <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                      name={`roomTypes.${index}.quota`}
+                                      type="number"
+                                      min="1"
+                                      placeholder="Jumlah kamar"
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                      Jumlah Dewasa <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                      name={`roomTypes.${index}.adultQty`}
+                                      type="number"
+                                      min="1"
+                                      placeholder="Maksimal dewasa"
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Jumlah Anak</label>
+                                    <Field
+                                      name={`roomTypes.${index}.childQty`}
+                                      type="number"
+                                      min="0"
+                                      placeholder="Maksimal anak"
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Gambar Kamar */}
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 mb-2">Gambar Kamar</label>
+                                  {room.roomImg ? (
+                                    <div className="mb-4">
+                                      <div className="relative w-full h-64 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                                        <Image
+                                          src={room.roomImg}
+                                          alt={room.roomName || "Gambar kamar"}
+                                          fill
+                                          className="object-cover"
+                                          loader={({ src }) => src}
+                                          unoptimized
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setFieldValue(`roomTypes.${index}.roomImg`, "");
+                                            setFieldValue(`roomTypes.${index}.file`, null);
+                                          }}
+                                          className="absolute top-3 right-3 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors duration-200"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-2">Klik tombol X untuk menghapus gambar</p>
+                                    </div>
+                                  ) : (
+                                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50/50 hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300">
+                                      <svg className="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                      <p className="text-sm text-gray-600 mb-3">Belum ada gambar kamar</p>
+                                    </div>
+                                  )}
+                                  <div className="mt-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Unggah Gambar Baru</label>
+                                    <div className="flex items-center">
+                                      <label className="flex-1 cursor-pointer">
+                                        <div className="px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-center">
+                                          Pilih File
+                                        </div>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            if (!e.target.files) return;
+                                            const file = e.target.files[0];
+                                            if (file.size > 5 * 1024 * 1024) {
+                                              alert("Ukuran file maksimal 5MB");
+                                              return;
+                                            }
+                                            setFieldValue(`roomTypes.${index}.roomImg`, URL.createObjectURL(file));
+                                            setFieldValue(`roomTypes.${index}.file`, file);
+                                          }}
+                                        />
+                                      </label>
+                                      <span className="ml-3 text-sm text-gray-500">PNG, JPG (Maks. 5MB)</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Peak Seasons (readonly) */}
+                                {room.peakSeasons && room.peakSeasons.length > 0 && (
+                                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                    <div className="flex items-center mb-2">
+                                      <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                      </svg>
+                                      <p className="text-sm font-semibold text-blue-800">Musim Ramai (Peak Seasons)</p>
+                                    </div>
+                                    <ul className="text-sm text-blue-700 space-y-2">
+                                      {room.peakSeasons.map((p, i) => (
+                                        <li key={i} className="flex items-center">
+                                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                          {new Date(p.startDate).toLocaleDateString('id-ID')} - {new Date(p.endDate).toLocaleDateString('id-ID')}{" "}
+                                          ({p.percentage ? `+${p.percentage}%` : p.nominal ? `+Rp${p.nominal.toLocaleString('id-ID')}` : ""})
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              push({
+                                roomName: "",
+                                price: 0,
+                                description: "",
+                                roomImg: "",
+                                quota: 1,
+                                adultQty: 1,
+                                childQty: 0,
+                                peakSeasons: [],
+                              })
+                            }
+                            className="inline-flex items-center justify-center px-5 py-4 border-2 border-dashed border-gray-300 text-base font-medium rounded-2xl text-gray-600 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-300 w-full group"
+                          >
+                            <svg className="w-6 h-6 mr-3 text-gray-500 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Tambah Tipe Kamar Baru
+                          </button>
+                        </div>
+                      )}
+                    </FieldArray>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-end pt-8 mt-8 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      disabled={submitting}
+                      className="px-8 py-3 border border-gray-300 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          Menyimpan...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Simpan Perubahan
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+          </div>
+        </div>
+      </div>
+    </ProtectedPage>
+  );
+}
