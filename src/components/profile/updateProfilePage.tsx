@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { TabsList } from "@/components/ui/tabs";
-import { TabsTrigger} from "@/components/ui/tabs";
+import { TabsTrigger } from "@/components/ui/tabs";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { motion } from "framer-motion";
@@ -62,16 +62,25 @@ export default function UpdateProfilePage() {
           <Card className="shadow-lg border-0 bg-white rounded-2xl p-6">
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-xl p-1 mb-6">
-                <TabsTrigger value="info" className="data-[state=active]:bg-[#2f567a] data-[state=active]:text-white rounded-lg">
+                <TabsTrigger
+                  value="info"
+                  className="data-[state=active]:bg-[#2f567a] data-[state=active]:text-white rounded-lg"
+                >
                   Informasi Personal
                 </TabsTrigger>
-                <TabsTrigger value="security" className="data-[state=active]:bg-[#2f567a] data-[state=active]:text-white rounded-lg">
+                <TabsTrigger
+                  value="security"
+                  className="data-[state=active]:bg-[#2f567a] data-[state=active]:text-white rounded-lg"
+                >
                   Keamanan
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="info">
-                <PersonalInfoForm userData={userData} setUserData={setUserData} />
+                <PersonalInfoForm
+                  userData={userData}
+                  setUserData={setUserData}
+                />
               </TabsContent>
 
               <TabsContent value="security">

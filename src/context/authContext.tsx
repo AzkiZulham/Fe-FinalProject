@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
@@ -64,12 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: u.id || decoded.id,
               role: u.role || decoded.role,
               verified:
-                u.verified ||
-                u.isEmailVerified ||
-                u.emailVerified ||
-                false,
+                u.verified || u.isEmailVerified || u.emailVerified || false,
               email: u.email || decoded.email,
-              username: u.username || decoded.username || "",
+              username: u.userName || decoded.username || "",
               avatar: u.avatar || "/default-avatar.png",
               phoneNumber: u.phoneNumber || "",
               birthDate: u.birthDate || "",

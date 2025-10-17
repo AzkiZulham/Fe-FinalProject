@@ -43,6 +43,12 @@ export type TenantOrderDetail = {
   checkInDate: string;
   checkOutDate: string;
   createdAt: string;
+  user?: {
+    id: number;
+    email: string | null;
+    username?: string | null;
+    phoneNumber?: string | null;
+  } | null;
   roomType: {
     roomName: string | null;
     property: {

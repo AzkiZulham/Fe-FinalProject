@@ -64,8 +64,16 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
+    console.log("auth user =>", user);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
     fetchDetail();
-  }, [transactionId]);
+  }, [user, transactionId]);
 
   const payWithMidtrans = async () => {
     try {
@@ -73,9 +81,9 @@ export default function CheckoutPage() {
         token: string;
         redirect_url: string;
         orderId: string;
-      }>("/api/payment/midtrans", { transactionId });
+      }>("/api/payment/midtrans/create", { transactionId });
       if (resp.data?.redirect_url) {
-        window.location.href = resp.data.redirect_url; // arahkan ke Midtrans
+        window.location.href = resp.data.redirect_url;
       } else {
         alert("Gagal membuka halaman pembayaran Midtrans.");
       }
@@ -154,7 +162,6 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Kanan: pilih metode pembayaran */}
           <div className="lg:col-span-1">
             <div className="rounded-xl border p-4 bg-white space-y-3">
               <h2 className="font-semibold">Pilih Metode Pembayaran</h2>

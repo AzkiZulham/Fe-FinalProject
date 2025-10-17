@@ -92,6 +92,21 @@ export default function TransactionDetailModal({
           </div>
 
           <div className="rounded-lg border p-3">
+            <h4 className="font-medium mb-2">Data Pembeli</h4>
+            <div className="text-sm text-gray-700 space-y-1">
+              <div>
+                Nama: <b>{detail?.user?.username ?? "-"}</b>
+              </div>
+              <div>
+                Email: <b>{detail?.user?.email ?? "-"}</b>
+              </div>
+              <div>
+                Telepon: <b>{detail?.user?.phoneNumber ?? "-"}</b>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3">
             <div className="text-sm">
               <div className="font-medium">
                 {detail.roomType?.property?.name ?? "-"}
