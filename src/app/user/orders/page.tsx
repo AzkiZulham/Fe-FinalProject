@@ -6,11 +6,14 @@ import StatusBadge from "@/components/statusBadge";
 import { UserOrderResponse, TransactionStatus } from "@/lib/orders/types";
 import Modal from "@/components/modal/modal";
 import OrderDetailBody from "@/components/modal/orderDetail/orderDetail";
+import { useAuth } from "@/context/authContext";
 
 export default function OrdersClient() {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+
+  const { user, initialized } = useAuth();
 
   const [data, setData] = useState<UserOrderResponse>({
     page: 1,
@@ -48,8 +51,18 @@ export default function OrdersClient() {
   }, [page, limit, status, q, from, to]);
 
   useEffect(() => {
+    if (!initialized) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+
     fetchData();
-  }, [fetchData]);
+  }, [initialized, user, fetchData, router]);
+
+  useEffect(() => {
+    console.log("auth user =>", user);
+  }, [user]);
 
   const setParam = (k: string, v?: string) => {
     const usp = new URLSearchParams(sp.toString());
@@ -78,7 +91,8 @@ export default function OrdersClient() {
           placeholder="Cari (order no / properti)"
           defaultValue={q}
           onKeyDown={(e) =>
-            e.key === "Enter" && setParam("q", (e.target as HTMLInputElement).value)
+            e.key === "Enter" &&
+            setParam("q", (e.target as HTMLInputElement).value)
           }
           className="col-span-2 rounded-md border px-3 py-2"
         />

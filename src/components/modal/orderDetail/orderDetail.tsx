@@ -2,10 +2,7 @@
 import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
 import CancelOrderBtn from "@/components/orders/cancelOrderBtn";
-import {
-  UserOrderDetail,
-  UserOrderDetailResponse,
-} from "@/lib/orders/types";
+import { UserOrderDetail, UserOrderDetailResponse } from "@/lib/orders/types";
 import StatusBadge from "../../statusBadge";
 import ReviewSection from "../../orders/review/reviewFormik";
 import UploadPaymentProofFormik from "../../orders/uploadPayment/uploadPayment";
@@ -109,37 +106,39 @@ export default function OrderDetailBody({ id }: { id: number }) {
           )}
         </div>
 
-        <div className="mt-2 rounded-md border p-3 bg-gray-50">
-          <div className="text-sm font-medium mb-2">Info Transfer Manual</div>
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <div>
-              <div className="text-gray-500">Bank Tujuan</div>
-              <div className="font-medium">{bank || "—"}</div>
+        {showActions && (
+          <div className="mt-2 rounded-md border p-3 bg-gray-50">
+            <div className="text-sm font-medium mb-2">Info Transfer Manual</div>
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <div>
+                <div className="text-gray-500">Bank Tujuan</div>
+                <div className="font-medium">{bank || "—"}</div>
+              </div>
+              {bank && (
+                <button
+                  onClick={() => copy(bank)}
+                  className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                >
+                  Salin
+                </button>
+              )}
             </div>
-            {bank && (
-              <button
-                onClick={() => copy(bank)}
-                className="rounded-md border px-2 py-1 text-xs hover:bg-white"
-              >
-                Salin
-              </button>
-            )}
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-            <div>
-              <div className="text-gray-500">No. Rekening</div>
-              <div className="font-medium">{rek || "—"}</div>
+            <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+              <div>
+                <div className="text-gray-500">No. Rekening</div>
+                <div className="font-medium">{rek || "—"}</div>
+              </div>
+              {rek && (
+                <button
+                  onClick={() => copy(rek)}
+                  className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                >
+                  Salin
+                </button>
+              )}
             </div>
-            {rek && (
-              <button
-                onClick={() => copy(rek)}
-                className="rounded-md border px-2 py-1 text-xs hover:bg-white"
-              >
-                Salin
-              </button>
-            )}
           </div>
-        </div>
+        )}
 
         {showActions && (
           <div className="flex flex-col gap-4 mt-3">

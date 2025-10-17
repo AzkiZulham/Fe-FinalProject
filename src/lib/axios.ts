@@ -5,6 +5,17 @@ export const axios = Axios.create({
   withCredentials: true,
 });
 
+if (typeof window !== "undefined") {
+  axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+}
+
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
