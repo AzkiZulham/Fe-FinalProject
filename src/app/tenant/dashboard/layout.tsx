@@ -19,7 +19,6 @@ import {
   LogOut,
   ChevronsLeft,
   ChevronsRight,
-  BarChart2,
   Newspaper,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
@@ -50,8 +49,8 @@ const sidebarSections: MenuSection[] = [
         name: "Properties",
         icon: Building2,
         children: [
-          { name: "Property List", href: "/dashboard/properties" },
-          { name: "Add Property", href: "/dashboard/properties/add" },
+          { name: "Property List", href: "/tenant/dashboard/properties" },
+          { name: "Add Property", href: "/tenant/dashboard/properties/add" },
         ],
       },
       {
@@ -62,7 +61,13 @@ const sidebarSections: MenuSection[] = [
           { name: "Add Room", href: "/dashboard/rooms/add" },
         ],
       },
-      { name: "Categories", href: "/dashboard/categories", icon: FolderOpen },
+      {
+        name: "Categories", 
+        icon: FolderOpen,
+        children: [
+          { name: "Manage Categories", href: "/tenant/dashboard/categories" }
+        ]
+      },
       {
         name: "Availability & Pricing",
         icon: CalendarDays,
@@ -402,7 +407,6 @@ export default function TenantDashboardLayout({
           <main className="flex-1 p-6 overflow-y-auto">{children}</main>
         </div>
       </div>
-      );
     </ProtectedPage>
   );
 }

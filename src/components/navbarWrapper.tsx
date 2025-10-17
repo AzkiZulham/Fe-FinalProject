@@ -5,24 +5,32 @@ import Navbar from "./navbar";
 
 export default function NavbarWrapper() {
   const pathname = usePathname();
+
   const noNavbarRoutes = [
-    "/login/tenant", 
-    "/login/user" ,
-    "/register/tenant", 
-    "/register/user" ,
-    "/reset-password", 
-    "/verify-password", 
+    "/login/tenant",
+    "/login/user",
+    "/register/tenant",
+    "/register/user",
+    "/reset-password",
+    "/verify-password",
     "/forgot-password",
     "/tenant/dashboard",
-    "/tenant", 
-    "/404" ,
-    "/403",
+    "/tenant",
+    "/tenant/dashboard/transactions",
+    "/tenant/dashboard/properties",
+    "/tenant/dashboard/properties/add",
+    "/tenant/dashboard/categories",
     "/404",
+    "/403",
     "/500",
-    "/legal"
+    "/legal",
   ];
 
-  if (noNavbarRoutes.includes(pathname)) return null;
+  const hideNavbar =
+    noNavbarRoutes.includes(pathname) ||
+    pathname.startsWith("/tenant/dashboard/properties/edit/");
+
+  if (hideNavbar) return null;
 
   return <Navbar />;
 }
