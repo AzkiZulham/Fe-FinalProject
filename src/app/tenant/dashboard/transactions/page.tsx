@@ -90,11 +90,6 @@ export default function TenantTransactionsPage() {
     }
   };
 
-  const afterAction = async () => {
-    if (selectedId) await openDetail(selectedId);
-    await fetchList();
-  };
-
   useEffect(() => {
     fetchList();
   }, [page, limit, status, q, from, to]);
@@ -103,15 +98,6 @@ export default function TenantTransactionsPage() {
     () => (data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1),
     [data]
   );
-
-  const canCancel =
-    detail?.status === "WAITING_FOR_PAYMENT" &&
-    (detail?.payment?.paymentStatus ?? "") !== "SETTLEMENT";
-
-  const canConfirmReject =
-    detail?.status === "WAITING_FOR_CONFIRMATION" &&
-    detail?.payment?.method === "TRANSFER" &&
-    (detail?.payment?.paymentStatus ?? "") === "PENDING";
 
   const refreshList = async () => {
     await fetchList();

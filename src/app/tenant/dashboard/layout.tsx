@@ -62,11 +62,11 @@ const sidebarSections: MenuSection[] = [
         ],
       },
       {
-        name: "Categories", 
+        name: "Categories",
         icon: FolderOpen,
         children: [
-          { name: "Manage Categories", href: "/tenant/dashboard/categories" }
-        ]
+          { name: "Manage Categories", href: "/tenant/dashboard/categories" },
+        ],
       },
       {
         name: "Availability & Pricing",
@@ -74,7 +74,7 @@ const sidebarSections: MenuSection[] = [
         children: [
           {
             name: "Availability Calendar",
-            href: "/dashboard/pricing/calendar",
+            href: "/tenant/dashboard/property-report",
           },
           { name: "Peak Season Rate", href: "/dashboard/pricing/peak" },
         ],
@@ -96,10 +96,6 @@ const sidebarSections: MenuSection[] = [
           {
             name: "Sales Report",
             href: "/tenant/dashboard/sales",
-          },
-          {
-            name: "Property Report",
-            href: "/tenant/dashboard/property-report",
           },
         ],
       },

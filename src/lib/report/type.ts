@@ -58,3 +58,25 @@ type ApiResp =
       totalPages: number;
       items: ItemGroup[];
     };
+
+type PerDate = {
+  date: string;
+  quota: number;
+  reserved: number;
+  remaining: number;
+  status: "AVAILABLE" | "FULL";
+  isPeakSeason: boolean;
+};
+
+type RoomReport = {
+  roomTypeId: number;
+  roomName: string;
+  quota: number;
+  property: { id: number; name: string; city: string };
+  perDate: PerDate[];
+};
+
+type Property = { id: number; name: string; city: string };
+type RoomType = { id: number; roomName: string };
+
+type ApiRespProperty = { items: RoomReport[] };
