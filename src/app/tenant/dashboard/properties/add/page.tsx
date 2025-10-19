@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Formik, Form, Field, FieldArray } from "formik";
+import * as Yup from "yup";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -48,12 +49,12 @@ export default function AddPropertyPage() {
 
   return (
     <ProtectedPage role="TENANT">
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
         {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Tambah Properti Baru</h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">Tambah Properti Baru</h1>
+          <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto">
             Lengkapi informasi properti Anda untuk mulai menyewakan kamar
           </p>
         </div>
@@ -66,6 +67,8 @@ export default function AddPropertyPage() {
             address: "",
             city: "",
             picture: undefined as File | undefined,
+            noRekening: "",
+            destinationBank: "",
             roomTypes: [
               {
                 roomName: "",
@@ -78,6 +81,23 @@ export default function AddPropertyPage() {
               },
             ],
           }}
+          validationSchema={Yup.object({
+            name: Yup.string().required("Nama properti wajib diisi"),
+            categoryId: Yup.string().required("Kategori wajib dipilih"),
+            address: Yup.string().required("Alamat wajib diisi"),
+            city: Yup.string().required("Kota wajib diisi"),
+            noRekening: Yup.string().required("Nomor rekening wajib diisi"),
+            destinationBank: Yup.string().required("Bank tujuan wajib diisi"),
+            roomTypes: Yup.array().of(
+              Yup.object({
+                roomName: Yup.string().required("Nama tipe kamar wajib diisi"),
+                price: Yup.number().required("Harga wajib diisi").min(0, "Harga tidak boleh negatif"),
+                quota: Yup.number().required("Kuota wajib diisi").min(1, "Kuota minimal 1"),
+                adultQty: Yup.number().required("Jumlah dewasa wajib diisi").min(1, "Minimal 1 dewasa"),
+                childQty: Yup.number().min(0, "Jumlah anak tidak boleh negatif"),
+              })
+            ).min(1, "Minimal satu tipe kamar"),
+          })}
           onSubmit={async (values, { setSubmitting }) => {
             try {
               const formData = new FormData();
@@ -86,6 +106,8 @@ export default function AddPropertyPage() {
               formData.append("description", values.description);
               formData.append("address", values.address);
               formData.append("city", values.city);
+              formData.append("noRekening", values.noRekening);
+              formData.append("destinationBank", values.destinationBank);
 
               if (values.picture) formData.append("picture", values.picture);
               formData.append("roomTypes", JSON.stringify(values.roomTypes));
@@ -113,22 +135,22 @@ export default function AddPropertyPage() {
           }}
         >
           {({ values, setFieldValue, isSubmitting }) => (
-            <Form className="space-y-8">
+            <Form className="space-y-6 sm:space-y-8">
               {/* === Property Information Card === */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
+                <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-100">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Informasi Properti</h2>
-                    <p className="text-gray-500 text-sm">Detail utama properti Anda</p>
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">Informasi Properti</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm">Detail utama properti Anda</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Property Name */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -136,7 +158,7 @@ export default function AddPropertyPage() {
                     </label>
                     <Field
                       name="name"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Contoh: Hotel Grand Paradise"
                     />
                   </div>
@@ -149,7 +171,7 @@ export default function AddPropertyPage() {
                     <Field
                       as="select"
                       name="categoryId"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white text-sm sm:text-base"
                     >
                       <option value="">Pilih kategori</option>
                       {categories.map((cat) => (
@@ -167,7 +189,7 @@ export default function AddPropertyPage() {
                     </label>
                     <Field
                       name="address"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Alamat lengkap properti"
                     />
                   </div>
@@ -179,8 +201,32 @@ export default function AddPropertyPage() {
                     </label>
                     <Field
                       name="city"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Kota lokasi properti"
+                    />
+                  </div>
+
+                  {/* Account Number */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nomor Rekening <span className="text-red-500">*</span>
+                    </label>
+                    <Field
+                      name="noRekening"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                      placeholder="Nomor rekening untuk pembayaran"
+                    />
+                  </div>
+
+                  {/* Bank Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Bank Tujuan <span className="text-red-500">*</span>
+                    </label>
+                    <Field
+                      name="destinationBank"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                      placeholder="Nama bank tujuan"
                     />
                   </div>
 
@@ -192,8 +238,8 @@ export default function AddPropertyPage() {
                     <Field
                       as="textarea"
                       name="description"
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                      rows={3}
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none text-sm sm:text-base"
                       placeholder="Jelaskan fasilitas, keunggulan, dan daya tarik properti Anda..."
                     />
                   </div>
@@ -203,11 +249,11 @@ export default function AddPropertyPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Foto Properti Utama
                     </label>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                         <label className="cursor-pointer">
-                          <div className="px-6 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 text-center">
-                            <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 text-center text-sm">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             Pilih Foto
@@ -225,11 +271,11 @@ export default function AddPropertyPage() {
                             }}
                           />
                         </label>
-                        <span className="text-sm text-gray-500">PNG, JPG (Maks. 5MB)</span>
+                        <span className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">PNG, JPG (Maks. 5MB)</span>
                       </div>
                       
                       {previewImage && (
-                        <div className="relative w-full max-w-md h-64 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                        <div className="relative w-full max-w-md h-48 sm:h-64 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                           <Image
                             src={previewImage}
                             alt="Preview"
@@ -242,9 +288,9 @@ export default function AddPropertyPage() {
                               setFieldValue("picture", null);
                               setPreviewImage(null);
                             }}
-                            className="absolute top-3 right-3 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors duration-200"
+                            className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-red-500 text-white p-1 sm:p-1.5 rounded-full hover:bg-red-600 transition-colors duration-200"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
@@ -256,47 +302,47 @@ export default function AddPropertyPage() {
               </div>
 
               {/* === Room Types Section === */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                       </svg>
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">Tipe Kamar</h2>
-                      <p className="text-gray-500 text-sm">Kelola berbagai tipe kamar yang tersedia</p>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">Tipe Kamar</h2>
+                      <p className="text-gray-500 text-xs sm:text-sm">Kelola berbagai tipe kamar yang tersedia</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 sm:px-3 py-1 rounded-lg">
                     {values.roomTypes.length} kamar
                   </div>
                 </div>
 
                 <FieldArray name="roomTypes">
                   {({ remove, push }) => (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {values.roomTypes.map((room, index) => (
                         <div
                           key={index}
-                          className="border border-gray-200 rounded-xl p-6 bg-gray-50/50 hover:bg-white transition-all duration-300 group"
+                          className="border border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-6 bg-gray-50/50 hover:bg-white transition-all duration-300 group"
                         >
                           {/* Room Header */}
-                          <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-sm font-semibold">
+                          <div className="flex items-center justify-between mb-3 sm:mb-4 pb-2 sm:pb-3 border-b border-gray-200">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 text-blue-600 rounded-md sm:rounded-lg flex items-center justify-center text-xs sm:text-sm font-semibold">
                                 {index + 1}
                               </div>
-                              <h3 className="text-lg font-semibold text-gray-900">Tipe Kamar {index + 1}</h3>
+                              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Tipe Kamar {index + 1}</h3>
                             </div>
                             {values.roomTypes.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => remove(index)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
@@ -304,7 +350,7 @@ export default function AddPropertyPage() {
                           </div>
 
                           {/* Room Form Grid */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                             {/* Room Name */}
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -312,7 +358,7 @@ export default function AddPropertyPage() {
                               </label>
                               <Field
                                 name={`roomTypes.${index}.roomName`}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                 placeholder="Contoh: Deluxe Room, Suite Executive"
                               />
                             </div>
@@ -323,11 +369,11 @@ export default function AddPropertyPage() {
                                 Harga per Malam <span className="text-red-500">*</span>
                               </label>
                               <div className="relative">
-                                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                                <span className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium text-sm sm:text-base">Rp</span>
                                 <Field
                                   type="number"
                                   name={`roomTypes.${index}.price`}
-                                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   placeholder="750000"
                                   min="0"
                                 />
@@ -335,7 +381,7 @@ export default function AddPropertyPage() {
                             </div>
 
                             {/* Capacity Grid */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-3 sm:gap-4">
                               <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                   Kuota <span className="text-red-500">*</span>
@@ -343,7 +389,7 @@ export default function AddPropertyPage() {
                                 <Field
                                   type="number"
                                   name={`roomTypes.${index}.quota`}
-                                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="1"
                                 />
                               </div>
@@ -355,7 +401,7 @@ export default function AddPropertyPage() {
                                 <Field
                                   type="number"
                                   name={`roomTypes.${index}.adultQty`}
-                                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="1"
                                 />
                               </div>
@@ -365,7 +411,7 @@ export default function AddPropertyPage() {
                                 <Field
                                   type="number"
                                   name={`roomTypes.${index}.childQty`}
-                                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="0"
                                 />
                               </div>
@@ -379,11 +425,11 @@ export default function AddPropertyPage() {
                               <input
                                 type="file"
                                 accept="image/*"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                 onChange={(e) =>
                                   setFieldValue(
                                     `roomTypes.${index}.roomImg`,
-                                    e.target.files?.[0] || null
+                                    e.target.files?.[0] || null 
                                   )
                                 }
                               />
@@ -397,8 +443,8 @@ export default function AddPropertyPage() {
                               <Field
                                 as="textarea"
                                 name={`roomTypes.${index}.description`}
-                                rows={3}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                                rows={2}
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none text-sm sm:text-base"
                                 placeholder="Jelaskan fasilitas dan keunggulan kamar ini..."
                               />
                             </div>
@@ -420,13 +466,13 @@ export default function AddPropertyPage() {
                             roomImg: null,
                           })
                         }
-                        className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 group"
+                        className="w-full py-3 sm:py-4 border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 group"
                       >
-                        <div className="flex items-center justify-center gap-3">
-                          <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-center justify-center gap-2 sm:gap-3">
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
-                          <span className="font-medium">Tambah Tipe Kamar Baru</span>
+                          <span className="font-medium text-sm sm:text-base">Tambah Tipe Kamar Baru</span>
                         </div>
                       </button>
                     </div>
@@ -435,22 +481,22 @@ export default function AddPropertyPage() {
               </div>
 
               {/* Submit Button */}
-              <div className="flex gap-4 pt-6">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="flex-1 px-6 py-4 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                  className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
+                  className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg sm:rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5 text-sm sm:text-base"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent"></div>
                       Menyimpan...
                     </div>
                   ) : (

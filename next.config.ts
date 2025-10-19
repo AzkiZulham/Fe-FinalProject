@@ -12,6 +12,11 @@ const nextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+      },
     ],
   },
   async rewrites() {

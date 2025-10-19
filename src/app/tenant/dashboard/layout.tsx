@@ -40,7 +40,7 @@ type MenuSection = {
 const sidebarSections: MenuSection[] = [
   {
     label: "MAIN MENU",
-    items: [{ name: "Dashboard", href: "/dashboard", icon: Home }],
+    items: [{ name: "Dashboard", href: "/tenant/dashboard", icon: Home }],
   },
   {
     label: "MANAGEMENT",
@@ -57,17 +57,11 @@ const sidebarSections: MenuSection[] = [
         name: "Rooms",
         icon: BedDouble,
         children: [
-          { name: "Room List", href: "/dashboard/rooms" },
-          { name: "Add Room", href: "/dashboard/rooms/add" },
+          { name: "Room List", href: "/tenant/dashboard/rooms" },
+          { name: "Create Room", href: "/tenant/dashboard/rooms/create" },
         ],
       },
-      {
-        name: "Categories",
-        icon: FolderOpen,
-        children: [
-          { name: "Manage Categories", href: "/tenant/dashboard/categories" },
-        ],
-      },
+      { name: "Categories", href: "/tenant/dashboard/categories", icon: FolderOpen },
       {
         name: "Availability & Pricing",
         icon: CalendarDays,
@@ -113,7 +107,13 @@ const sidebarSections: MenuSection[] = [
 // ================= Helper =================
 const useActive = () => {
   const pathname = usePathname();
-  return (href?: string) => href && pathname.startsWith(href);
+  return (href?: string) => {
+    if (!href) return false;
+    if (href === "/tenant/dashboard") {
+      return pathname === "/tenant/dashboard";
+    }
+    return pathname.startsWith(href);
+  };
 };
 
 // ================= Desktop Sidebar =================
@@ -144,7 +144,7 @@ function DesktopSidebar({
       >
         {!collapsed && (
           <Link href="/" className="font-bold text-lg tracking-wide">
-            StayFinder
+            STAY FINDER
           </Link>
         )}
         <button
@@ -170,12 +170,16 @@ function DesktopSidebar({
 
               return (
                 <div key={i}>
-                  <button
-                    onClick={() =>
-                      hasChildren && !collapsed ? toggleExpand(menu.name) : null
-                    }
+                  <Link
+                    href={menu.href || "#"}
+                    onClick={(e) => {
+                      if (hasChildren && !collapsed) {
+                        e.preventDefault();
+                        toggleExpand(menu.name);
+                      }
+                    }}
                     className={`flex items-center justify-between w-full px-3 py-2 rounded-lg transition ${
-                      isActive(menu.href) ? "bg-white/20" : "hover:bg-white/10"
+                      hasChildren ? menu.children?.some(child => isActive(child.href)) : isActive(menu.href) ? "bg-white/20" : "hover:bg-white/10"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -192,7 +196,7 @@ function DesktopSidebar({
                         }`}
                       />
                     )}
-                  </button>
+                  </Link>
 
                   {/* Submenu */}
                   <AnimatePresence>
@@ -288,10 +292,14 @@ function MobileSidebar({
 
                     return (
                       <div key={i}>
-                        <button
-                          onClick={() =>
-                            hasChildren ? toggleExpand(menu.name) : null
-                          }
+                        <Link
+                          href={menu.href || "#"}
+                          onClick={(e) => {
+                            if (hasChildren) {
+                              e.preventDefault();
+                              toggleExpand(menu.name);
+                            }
+                          }}
                           className={`flex items-center justify-between w-full px-3 py-2 rounded-lg transition ${
                             isActive(menu.href)
                               ? "bg-white/20"
@@ -312,7 +320,7 @@ function MobileSidebar({
                               }`}
                             />
                           )}
-                        </button>
+                        </Link>
 
                         {/* Submenu */}
                         <AnimatePresence>

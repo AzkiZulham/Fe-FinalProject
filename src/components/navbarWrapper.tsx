@@ -20,15 +20,21 @@ export default function NavbarWrapper() {
     "/tenant/dashboard/properties",
     "/tenant/dashboard/properties/add",
     "/tenant/dashboard/categories",
+    "/tenant/dashboard/rooms",
+    "/tenant/dashboard/rooms/create",
+    "/tenant/dashboard/sales",
+    "/tenant/dashboard/property-report",
     "/404",
     "/403",
     "/500",
     "/legal",
   ];
 
+  // Tambahkan pattern untuk halaman edit room dinamis
   const hideNavbar =
     noNavbarRoutes.includes(pathname) ||
-    pathname.startsWith("/tenant/dashboard/properties/edit/");
+    pathname.startsWith("/tenant/dashboard/properties/edit/") ||
+    pathname.startsWith("/tenant/dashboard/rooms/edit/"); // ✅ ini tambahan penting
 
   if (hideNavbar) return null;
 

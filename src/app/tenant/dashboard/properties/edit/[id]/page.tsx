@@ -26,7 +26,6 @@ type RoomType = {
   }[];
 };
 
-
 type PropertyCategory = {
   id: number;
   category: string;
@@ -39,6 +38,8 @@ type Property = {
   description?: string;
   picture?: string;
   categoryId?: number;
+  noRekening?: string;
+  destinationBank?: string;
   roomTypes: RoomType[];
 };
 
@@ -62,6 +63,14 @@ const validationSchema = Yup.object({
     .max(1000, "Deskripsi maksimal 1000 karakter")
     .optional(),
   categoryId: Yup.string().optional(),
+  noRekening: Yup.string()
+    .required("Nomor rekening wajib diisi")
+    .matches(/^\d+$/, "Nomor rekening harus berupa angka")
+    .min(10, "Nomor rekening minimal 10 digit")
+    .max(20, "Nomor rekening maksimal 20 digit"),
+  destinationBank: Yup.string()
+    .required("Bank tujuan wajib diisi")
+    .max(50, "Nama bank maksimal 50 karakter"),
   roomTypes: Yup.array()
     .of(
       Yup.object({
@@ -135,13 +144,11 @@ export default function EditPropertyPage() {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
     
-    // Validasi ukuran file (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("Ukuran file maksimal 5MB");
       return;
     }
     
-    // Validasi tipe file
     if (!file.type.startsWith('image/')) {
       alert("File harus berupa gambar");
       return;
@@ -203,13 +210,13 @@ export default function EditPropertyPage() {
 
   return (
     <ProtectedPage role="TENANT">
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-4 sm:py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
           {/* Header Section */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <button
               onClick={handleCancel}
-              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors duration-200"
+              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 transition-colors duration-200"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -219,10 +226,10 @@ export default function EditPropertyPage() {
             
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Properti</h1>
-                <p className="text-gray-600">Perbarui informasi properti dan tipe kamar yang tersedia</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Edit Properti</h1>
+                <p className="text-gray-600 text-sm sm:text-base">Perbarui informasi properti dan tipe kamar yang tersedia</p>
               </div>
-              <div className="mt-4 lg:mt-0">
+              <div className="mt-3 lg:mt-0">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                   ID: {property.id}
                 </span>
@@ -231,7 +238,7 @@ export default function EditPropertyPage() {
           </div>
 
           {/* Form Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <Formik
               enableReinitialize
               validationSchema={validationSchema}
@@ -240,6 +247,8 @@ export default function EditPropertyPage() {
                 address: property.address,
                 description: property.description || "",
                 categoryId: property.categoryId || "",
+                noRekening: property.noRekening || "",
+                destinationBank: property.destinationBank || "",
                 roomTypes: property.roomTypes || [],
               }}
               onSubmit={async (values) => {
@@ -250,6 +259,8 @@ export default function EditPropertyPage() {
                   formData.append("address", values.address.trim());
                   formData.append("description", values.description.trim());
                   formData.append("categoryId", values.categoryId?.toString() || "");
+                  formData.append("noRekening", values.noRekening || "");
+                  formData.append("destinationBank", values.destinationBank || "");
                   formData.append("roomTypes", JSON.stringify(values.roomTypes));
 
                   if (selectedFile) formData.append("picture", selectedFile);
@@ -261,8 +272,6 @@ export default function EditPropertyPage() {
                       "Content-Type": "multipart/form-data",
                     },
                   });
-
-                  // Show success message
                   alert("Properti berhasil diperbarui!");
                   router.push("/tenant/dashboard/properties");
                 } catch (err) {
@@ -274,10 +283,10 @@ export default function EditPropertyPage() {
               }}
             >
               {({ values, errors, touched, setFieldValue }) => (
-                <Form className="p-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Form className="p-4 sm:p-6 lg:p-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                     {/* Left Column - Basic Info */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Name */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -286,7 +295,7 @@ export default function EditPropertyPage() {
                         <Field
                           name="name"
                           required
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 ${
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 text-sm sm:text-base ${
                             errors.name && touched.name ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="Masukkan nama properti"
@@ -305,8 +314,8 @@ export default function EditPropertyPage() {
                           as="textarea"
                           name="address"
                           required
-                          rows={4}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none ${
+                          rows={3}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none text-sm sm:text-base ${
                             errors.address && touched.address ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="Masukkan alamat lengkap properti"
@@ -328,8 +337,8 @@ export default function EditPropertyPage() {
                           <Field
                             as="textarea"
                             name="description"
-                            rows={5}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none ${
+                            rows={4}
+                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 resize-none text-sm sm:text-base ${
                               errors.description && touched.description ? 'border-red-500' : 'border-gray-300'
                             }`}
                             placeholder="Deskripsikan properti Anda..."
@@ -338,7 +347,7 @@ export default function EditPropertyPage() {
                             }
                           />
                           {/* Character Counter */}
-                          <div className="absolute bottom-3 right-3">
+                          <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
                             <span className={`text-xs ${
                               descriptionLength > 1000 ? 'text-red-500' : 
                               descriptionLength > 800 ? 'text-yellow-500' : 'text-gray-400'
@@ -363,7 +372,7 @@ export default function EditPropertyPage() {
                         <Field
                           as="select"
                           name="categoryId"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 appearance-none"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 appearance-none text-sm sm:text-base"
                         >
                           <option value="">Pilih Kategori</option>
                           {categories.map((cat) => (
@@ -373,10 +382,51 @@ export default function EditPropertyPage() {
                           ))}
                         </Field>
                       </div>
+
+                      {/* Bank Account Number */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nomor Rekening
+                          <span className="text-xs font-normal text-gray-500 ml-1">
+                            (Opsional - untuk pembayaran)
+                          </span>
+                        </label>
+                        <Field
+                          name="noRekening"
+                          type="text"
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 text-sm sm:text-base ${
+                            errors.noRekening && touched.noRekening ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Masukkan nomor rekening"
+                        />
+                        {errors.noRekening && touched.noRekening && (
+                          <p className="mt-1 text-sm text-red-600">{errors.noRekening}</p>
+                        )}
+                      </div>
+
+                      {/* Bank Name */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nama Bank
+                          <span className="text-xs font-normal text-gray-500 ml-1">
+                            (Opsional - untuk pembayaran)
+                          </span>
+                        </label>
+                        <Field
+                          name="destinationBank"
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors duration-200 text-sm sm:text-base ${
+                            errors.destinationBank && touched.destinationBank ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Contoh: BCA, Mandiri, BRI"
+                        />
+                        {errors.destinationBank && touched.destinationBank && (
+                          <p className="mt-1 text-sm text-red-600">{errors.destinationBank}</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Right Column - Image */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Picture Upload */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -385,9 +435,9 @@ export default function EditPropertyPage() {
                         
                         {/* Preview */}
                         {preview && (
-                          <div className="mb-4">
+                          <div className="mb-3 sm:mb-4">
                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+                            <div className="relative w-full h-40 sm:h-48 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200">
                               <Image
                                 src={preview}
                                 alt="Preview properti"
@@ -400,9 +450,9 @@ export default function EditPropertyPage() {
                               <button
                                 type="button"
                                 onClick={handleRemovePicture}
-                                className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-lg"
+                                className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-red-600 text-white p-1.5 sm:p-2 rounded-md sm:rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-lg"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
@@ -411,7 +461,7 @@ export default function EditPropertyPage() {
                         )}
 
                         {/* File Input */}
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors duration-200 bg-gray-50">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center hover:border-blue-400 transition-colors duration-200 bg-gray-50">
                           <input
                             type="file"
                             accept="image/*"
@@ -423,10 +473,10 @@ export default function EditPropertyPage() {
                             htmlFor="picture-upload"
                             className="cursor-pointer block"
                           >
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <p className="mt-2 text-sm text-gray-600">
+                            <p className="mt-2 text-xs sm:text-sm text-gray-600">
                               <span className="font-medium text-blue-600 hover:text-blue-500">
                                 Upload foto baru
                               </span>{' '}
@@ -440,9 +490,9 @@ export default function EditPropertyPage() {
                       </div>
 
                       {/* Description Tips */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
                         <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           Tips Deskripsi yang Menarik
@@ -458,8 +508,8 @@ export default function EditPropertyPage() {
                   </div>
 
                   {/* Room Types Section */}
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <div className="flex items-center justify-between mb-6">
+                  <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">Tipe Kamar</h3>
                         <p className="text-sm text-gray-600">Kelola jenis kamar dan harga yang tersedia</p>
@@ -468,44 +518,44 @@ export default function EditPropertyPage() {
 
                     <FieldArray name="roomTypes">
                       {({ push, remove }) => (
-                        <div className="space-y-6">
+                        <div className="space-y-4 sm:space-y-6">
                           {values.roomTypes.length === 0 ? (
-                            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50/50 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/30">
-                              <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                                <svg className="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="text-center py-8 sm:py-12 border-2 border-dashed border-gray-300 rounded-xl sm:rounded-2xl bg-gray-50/50 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/30">
+                              <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 bg-blue-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                                <svg className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                                 </svg>
                               </div>
-                              <h3 className="text-lg font-medium text-gray-700 mb-1">Belum ada tipe kamar</h3>
-                              <p className="text-sm text-gray-500 max-w-md mx-auto">Tambahkan tipe kamar pertama Anda untuk mulai mengelola properti</p>
+                              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-1">Belum ada tipe kamar</h3>
+                              <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">Tambahkan tipe kamar pertama Anda untuk mulai mengelola properti</p>
                             </div>
                           ) : (
                             values.roomTypes.map((room, index) => (
                               <div
                                 key={index}
-                                className="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all duration-300 space-y-6 relative group"
+                                className="p-4 sm:p-6 border border-gray-200 rounded-xl sm:rounded-2xl bg-white shadow-sm hover:shadow-md transition-all duration-300 space-y-4 sm:space-y-6 relative group"
                               >
                                 {/* Header dengan nomor dan tombol hapus */}
-                                <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                                <div className="flex justify-between items-center pb-3 sm:pb-4 border-b border-gray-100">
                                   <div className="flex items-center">
-                                    <div className="h-8 w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
+                                    <div className="h-6 w-6 sm:h-8 sm:w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold mr-2 sm:mr-3">
                                       {index + 1}
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-800">Tipe Kamar {index + 1}</h3>
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-800">Tipe Kamar {index + 1}</h3>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => remove(index)}
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
                                   >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                   </button>
                                 </div>
 
                                 {/* Nama dan Harga */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                   <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                       Nama Tipe Kamar <span className="text-red-500">*</span>
@@ -513,7 +563,7 @@ export default function EditPropertyPage() {
                                     <Field
                                       name={`roomTypes.${index}.roomName`}
                                       placeholder="Contoh: Deluxe Room, Suite Executive"
-                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                     />
                                     <ErrorMessage 
                                       name={`roomTypes.${index}.roomName`} 
@@ -526,12 +576,12 @@ export default function EditPropertyPage() {
                                       Harga per Malam <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                                      <span className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium text-sm sm:text-base">Rp</span>
                                       <Field
                                         name={`roomTypes.${index}.price`}
                                         type="number"
                                         min="0"
-                                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                        className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                       />
                                     </div>
                                     <ErrorMessage 
@@ -548,14 +598,14 @@ export default function EditPropertyPage() {
                                   <Field
                                     as="textarea"
                                     name={`roomTypes.${index}.description`}
-                                    rows={3}
+                                    rows={2}
                                     placeholder="Tuliskan deskripsi singkat tentang fasilitas dan keunggulan kamar ini..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none text-sm sm:text-base"
                                   />
                                 </div>
 
                                 {/* Kuota dan Jumlah Orang */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                   <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                       Kuota Kamar <span className="text-red-500">*</span>
@@ -565,7 +615,7 @@ export default function EditPropertyPage() {
                                       type="number"
                                       min="1"
                                       placeholder="Jumlah kamar"
-                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                     />
                                   </div>
                                   <div>
@@ -577,7 +627,7 @@ export default function EditPropertyPage() {
                                       type="number"
                                       min="1"
                                       placeholder="Maksimal dewasa"
-                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                     />
                                   </div>
                                   <div>
@@ -587,7 +637,7 @@ export default function EditPropertyPage() {
                                       type="number"
                                       min="0"
                                       placeholder="Maksimal anak"
-                                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                     />
                                   </div>
                                 </div>
@@ -596,8 +646,8 @@ export default function EditPropertyPage() {
                                 <div>
                                   <label className="block text-sm font-semibold text-gray-700 mb-2">Gambar Kamar</label>
                                   {room.roomImg ? (
-                                    <div className="mb-4">
-                                      <div className="relative w-full h-64 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                                    <div className="mb-3 sm:mb-4">
+                                      <div className="relative w-full h-48 sm:h-64 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                                         <Image
                                           src={room.roomImg}
                                           alt={room.roomName || "Gambar kamar"}
@@ -612,9 +662,9 @@ export default function EditPropertyPage() {
                                             setFieldValue(`roomTypes.${index}.roomImg`, "");
                                             setFieldValue(`roomTypes.${index}.file`, null);
                                           }}
-                                          className="absolute top-3 right-3 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors duration-200"
+                                          className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-red-500 text-white p-1 sm:p-1.5 rounded-full hover:bg-red-600 transition-colors duration-200"
                                         >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                           </svg>
                                         </button>
@@ -622,18 +672,18 @@ export default function EditPropertyPage() {
                                       <p className="text-xs text-gray-500 mt-2">Klik tombol X untuk menghapus gambar</p>
                                     </div>
                                   ) : (
-                                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50/50 hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300">
-                                      <svg className="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center bg-gray-50/50 hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300">
+                                      <svg className="mx-auto h-8 w-8 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                       </svg>
-                                      <p className="text-sm text-gray-600 mb-3">Belum ada gambar kamar</p>
+                                      <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">Belum ada gambar kamar</p>
                                     </div>
                                   )}
-                                  <div className="mt-3">
+                                  <div className="mt-2 sm:mt-3">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Unggah Gambar Baru</label>
-                                    <div className="flex items-center">
-                                      <label className="flex-1 cursor-pointer">
-                                        <div className="px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-center">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                      <label className="cursor-pointer">
+                                        <div className="px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg sm:rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-center text-sm">
                                           Pilih File
                                         </div>
                                         <input
@@ -652,24 +702,24 @@ export default function EditPropertyPage() {
                                           }}
                                         />
                                       </label>
-                                      <span className="ml-3 text-sm text-gray-500">PNG, JPG (Maks. 5MB)</span>
+                                      <span className="text-xs text-gray-500">PNG, JPG (Maks. 5MB)</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Peak Seasons (readonly) */}
                                 {room.peakSeasons && room.peakSeasons.length > 0 && (
-                                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                  <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
                                     <div className="flex items-center mb-2">
-                                      <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                       </svg>
                                       <p className="text-sm font-semibold text-blue-800">Musim Ramai (Peak Seasons)</p>
                                     </div>
-                                    <ul className="text-sm text-blue-700 space-y-2">
+                                    <ul className="text-xs sm:text-sm text-blue-700 space-y-1 sm:space-y-2">
                                       {room.peakSeasons.map((p, i) => (
                                         <li key={i} className="flex items-center">
-                                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full mr-2"></span>
                                           {new Date(p.startDate).toLocaleDateString('id-ID')} - {new Date(p.endDate).toLocaleDateString('id-ID')}{" "}
                                           ({p.percentage ? `+${p.percentage}%` : p.nominal ? `+Rp${p.nominal.toLocaleString('id-ID')}` : ""})
                                         </li>
@@ -695,9 +745,9 @@ export default function EditPropertyPage() {
                                 peakSeasons: [],
                               })
                             }
-                            className="inline-flex items-center justify-center px-5 py-4 border-2 border-dashed border-gray-300 text-base font-medium rounded-2xl text-gray-600 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-300 w-full group"
+                            className="inline-flex items-center justify-center px-4 sm:px-5 py-3 sm:py-4 border-2 border-dashed border-gray-300 text-sm sm:text-base font-medium rounded-xl sm:rounded-2xl text-gray-600 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-300 w-full group"
                           >
-                            <svg className="w-6 h-6 mr-3 text-gray-500 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-gray-500 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
                             Tambah Tipe Kamar Baru
@@ -708,28 +758,28 @@ export default function EditPropertyPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-4 justify-end pt-8 mt-8 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end pt-6 sm:pt-8 mt-6 sm:mt-8 border-t border-gray-200">
                     <button
                       type="button"
                       onClick={handleCancel}
                       disabled={submitting}
-                      className="px-8 py-3 border border-gray-300 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
+                      className="px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-sm sm:text-base font-medium rounded-lg sm:rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg sm:rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {submitting ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-2"></div>
                           Menyimpan...
                         </>
                       ) : (
                         <>
-                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           Simpan Perubahan
