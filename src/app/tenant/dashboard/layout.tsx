@@ -61,7 +61,11 @@ const sidebarSections: MenuSection[] = [
           { name: "Create Room", href: "/tenant/dashboard/rooms/create" },
         ],
       },
-      { name: "Categories", href: "/tenant/dashboard/categories", icon: FolderOpen },
+      {
+        name: "Categories",
+        href: "/tenant/dashboard/categories",
+        icon: FolderOpen,
+      },
       {
         name: "Availability & Pricing",
         icon: CalendarDays,
@@ -75,23 +79,13 @@ const sidebarSections: MenuSection[] = [
       },
       {
         name: "Transaction",
+        href: "/tenant/dashboard/transactions",
         icon: Newspaper,
-        children: [
-          {
-            name: "Order List",
-            href: "/tenant/dashboard/transactions",
-          },
-        ],
       },
       {
         name: "Reports",
+        href: "/tenant/dashboard/sales",
         icon: BarChart3,
-        children: [
-          {
-            name: "Sales Report",
-            href: "/tenant/dashboard/sales",
-          },
-        ],
       },
     ],
   },
@@ -179,7 +173,11 @@ function DesktopSidebar({
                       }
                     }}
                     className={`flex items-center justify-between w-full px-3 py-2 rounded-lg transition ${
-                      hasChildren ? menu.children?.some(child => isActive(child.href)) : isActive(menu.href) ? "bg-white/20" : "hover:bg-white/10"
+                      hasChildren
+                        ? menu.children?.some((child) => isActive(child.href))
+                        : isActive(menu.href)
+                        ? "bg-white/20"
+                        : "hover:bg-white/10"
                     }`}
                   >
                     <div className="flex items-center gap-3">
