@@ -1,10 +1,10 @@
-// app/payment/finish/page.tsx
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import ProtectedPage from "@/components/protectedPage";
 
 const labelFromStatus = (s?: string) => {
   switch ((s || "").toLowerCase()) {
@@ -39,38 +39,40 @@ export default function PaymentFinishPage() {
   const statusInfo = useMemo(() => labelFromStatus(trxStatus), [trxStatus]);
 
   return (
-    <div className="p-4 max-w-3xl mx-auto space-y-4">
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle>Payment Result</CardTitle>
-          <span className={`text-sm ${statusInfo.tone}`}>
-            {statusInfo.text}
-          </span>
-        </CardHeader>
+    <ProtectedPage role="USER">
+      <div className="p-4 max-w-3xl mx-auto space-y-4">
+        <Card>
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle>Payment Result</CardTitle>
+            <span className={`text-sm ${statusInfo.tone}`}>
+              {statusInfo.text}
+            </span>
+          </CardHeader>
 
-        <CardContent className="space-y-3">
-          <div className="grid sm:grid-cols-2 gap-2 text-sm">
-            <Row label="Order ID" value={orderId} />
-            <Row label="Status Code" value={statusCode} />
-            <Row label="Transaction Status" value={trxStatus} />
-          </div>
+          <CardContent className="space-y-3">
+            <div className="grid sm:grid-cols-2 gap-2 text-sm">
+              <Row label="Order ID" value={orderId} />
+              <Row label="Status Code" value={statusCode} />
+              <Row label="Transaction Status" value={trxStatus} />
+            </div>
 
-          <Hint trxStatus={trxStatus} />
+            <Hint trxStatus={trxStatus} />
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/user/orders")}
-            >
-              Lihat Daftar Pesanan
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/")}>
-              Kembali ke Beranda
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/user/orders")}
+              >
+                Lihat Daftar Pesanan
+              </Button>
+              <Button variant="outline" onClick={() => router.push("/")}>
+                Kembali ke Beranda
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </ProtectedPage>
   );
 }
 

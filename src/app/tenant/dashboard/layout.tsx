@@ -72,7 +72,7 @@ const sidebarSections: MenuSection[] = [
         children: [
           {
             name: "Availability Calendar",
-            href: "/tenant/dashboard/property-report",
+            href: "/tenant/dashboard/",
           },
           { name: "Peak Season Rate", href: "/dashboard/pricing/peak" },
         ],
@@ -84,8 +84,17 @@ const sidebarSections: MenuSection[] = [
       },
       {
         name: "Reports",
-        href: "/tenant/dashboard/sales",
         icon: BarChart3,
+        children: [
+          {
+            name: "Sales Report",
+            href: "/tenant/dashboard/sales",
+          },
+          {
+            name: "Calendar",
+            href: "/tenant/dashboard/property-report",
+          },
+        ],
       },
     ],
   },

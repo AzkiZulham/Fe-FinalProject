@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
 import { useAuth } from "@/context/authContext";
 import StatusBadge from "@/components/statusBadge";
+import ProtectedPage from "@/components/protectedPage";
 
 type OrderDetail = {
   id: number;
@@ -106,113 +107,115 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-screen-lg px-3 sm:px-4 lg:px-6 py-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Checkout</h1>
+    <ProtectedPage role="USER">
+      <div className="mx-auto w-full max-w-screen-lg px-3 sm:px-4 lg:px-6 py-6 space-y-6">
+        <h1 className="text-2xl font-semibold">Checkout</h1>
 
-      {loading && <p>Loading...</p>}
-      {err && <p className="text-rose-600">{err}</p>}
+        {loading && <p>Loading...</p>}
+        {err && <p className="text-rose-600">{err}</p>}
 
-      {order && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="rounded-xl border p-4 bg-white">
-              <h2 className="font-semibold mb-3">Data Pengguna</h2>
-              <div className="text-sm text-gray-700 space-y-1">
-                <div>
-                  Nama:{" "}
-                  <span className="font-medium">{user?.username ?? "-"}</span>
-                </div>
-                <div>
-                  Email:{" "}
-                  <span className="font-medium">{user?.email ?? "-"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border p-4 bg-white space-y-3">
-              <h2 className="font-semibold">Ringkasan Pesanan</h2>
-              <div className="text-sm text-gray-700">
-                <div className="font-medium">
-                  {order.roomType?.property?.name ?? "-"}
-                </div>
-                <div className="text-gray-500">
-                  {order.roomType?.roomName ?? "-"} •{" "}
-                  {order.roomType?.property?.city ?? "-"}
-                </div>
-                <div className="text-gray-500">
-                  {order.roomType?.property?.address ?? "-"}
-                </div>
-              </div>
-              <div className="text-sm">
-                <div>
-                  Tanggal: {new Date(order.checkInDate).toLocaleDateString()} —{" "}
-                  {new Date(order.checkOutDate).toLocaleDateString()}
-                </div>
-                <div>Jumlah kamar: {order.qty}</div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t">
-                <span className="font-medium">Total</span>
-                <span className="text-lg font-bold text-blue-600">
-                  Rp {order.totalPrice.toLocaleString("id-ID")}
-                </span>
-              </div>
-              <div className="pt-2">
-                <StatusBadge status={order.status} />
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="rounded-xl border p-4 bg-white space-y-3">
-              <h2 className="font-semibold">Pilih Metode Pembayaran</h2>
-              {order.status !== "WAITING_FOR_PAYMENT" && (
-                <p className="text-sm text-amber-600">
-                  Metode pembayaran hanya tersedia saat status{" "}
-                  <b>WAITING_FOR_PAYMENT</b>.
-                </p>
-              )}
-
-              <button
-                onClick={() =>
-                  router.push(`/checkout/transfer?transactionId=${order.id}`)
-                }
-                disabled={order.status !== "WAITING_FOR_PAYMENT"}
-                className="w-full rounded-md border px-4 py-2 text-left hover:bg-gray-50 disabled:opacity-50"
-              >
-                TRANSFER Bank (Upload Bukti)
-              </button>
-
-              <button
-                onClick={payWithMidtrans}
-                disabled={order.status !== "WAITING_FOR_PAYMENT"}
-                className="w-full rounded-md bg-black text-white px-4 py-2 hover:opacity-90 disabled:opacity-50"
-              >
-                Bayar via MIDTRANS
-              </button>
-
-              {order.roomType?.property?.destinationBank &&
-                order.roomType?.property?.noRekening && (
-                  <div className="mt-2 rounded-md border p-3 bg-gray-50">
-                    <div className="text-xs text-gray-500 mb-1">
-                      Info Transfer
-                    </div>
-                    <div className="text-sm">
-                      Bank: <b>{order.roomType.property.destinationBank}</b>
-                    </div>
-                    <div className="text-sm">
-                      No. Rek: <b>{order.roomType.property.noRekening}</b>
-                    </div>
+        {order && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="rounded-xl border p-4 bg-white">
+                <h2 className="font-semibold mb-3">Data Pengguna</h2>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <div>
+                    Nama:{" "}
+                    <span className="font-medium">{user?.username ?? "-"}</span>
                   </div>
+                  <div>
+                    Email:{" "}
+                    <span className="font-medium">{user?.email ?? "-"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-4 bg-white space-y-3">
+                <h2 className="font-semibold">Ringkasan Pesanan</h2>
+                <div className="text-sm text-gray-700">
+                  <div className="font-medium">
+                    {order.roomType?.property?.name ?? "-"}
+                  </div>
+                  <div className="text-gray-500">
+                    {order.roomType?.roomName ?? "-"} •{" "}
+                    {order.roomType?.property?.city ?? "-"}
+                  </div>
+                  <div className="text-gray-500">
+                    {order.roomType?.property?.address ?? "-"}
+                  </div>
+                </div>
+                <div className="text-sm">
+                  <div>
+                    Tanggal: {new Date(order.checkInDate).toLocaleDateString()}{" "}
+                    — {new Date(order.checkOutDate).toLocaleDateString()}
+                  </div>
+                  <div>Jumlah kamar: {order.qty}</div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="font-medium">Total</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    Rp {order.totalPrice.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="pt-2">
+                  <StatusBadge status={order.status} />
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <div className="rounded-xl border p-4 bg-white space-y-3">
+                <h2 className="font-semibold">Pilih Metode Pembayaran</h2>
+                {order.status !== "WAITING_FOR_PAYMENT" && (
+                  <p className="text-sm text-amber-600">
+                    Metode pembayaran hanya tersedia saat status{" "}
+                    <b>WAITING_FOR_PAYMENT</b>.
+                  </p>
                 )}
 
-              <p className="text-xs text-gray-500">
-                * Pembayaran manual (TRANSFER) wajib upload bukti dalam 1 jam
-                sejak pemesanan.
-              </p>
+                <button
+                  onClick={() =>
+                    router.push(`/checkout/transfer?transactionId=${order.id}`)
+                  }
+                  disabled={order.status !== "WAITING_FOR_PAYMENT"}
+                  className="w-full rounded-md border px-4 py-2 text-left hover:bg-gray-50 disabled:opacity-50"
+                >
+                  TRANSFER Bank (Upload Bukti)
+                </button>
+
+                <button
+                  onClick={payWithMidtrans}
+                  disabled={order.status !== "WAITING_FOR_PAYMENT"}
+                  className="w-full rounded-md bg-black text-white px-4 py-2 hover:opacity-90 disabled:opacity-50"
+                >
+                  Bayar via MIDTRANS
+                </button>
+
+                {order.roomType?.property?.destinationBank &&
+                  order.roomType?.property?.noRekening && (
+                    <div className="mt-2 rounded-md border p-3 bg-gray-50">
+                      <div className="text-xs text-gray-500 mb-1">
+                        Info Transfer
+                      </div>
+                      <div className="text-sm">
+                        Bank: <b>{order.roomType.property.destinationBank}</b>
+                      </div>
+                      <div className="text-sm">
+                        No. Rek: <b>{order.roomType.property.noRekening}</b>
+                      </div>
+                    </div>
+                  )}
+
+                <p className="text-xs text-gray-500">
+                  * Pembayaran manual (TRANSFER) wajib upload bukti dalam 1 jam
+                  sejak pemesanan.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </ProtectedPage>
   );
 }
