@@ -116,7 +116,7 @@ export default function SalesReportPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <Stat
                 title="Total Revenue"
                 value={summary ? money(summary.totalRevenue) : "-"}
@@ -126,14 +126,23 @@ export default function SalesReportPage() {
                 value={summary ? summary.countTransaction : "-"}
               />
               <Stat
-                title="By Method"
+                title="Payment Method(Transfer)"
                 value={
                   summary
-                    ? `Transfer ${money(summary.byMethod.TRANSFER.revenue)} (${
+                    ? ` ${money(summary.byMethod.TRANSFER.revenue)} (${
                         summary.byMethod.TRANSFER.count
-                      }) • Midtrans ${money(
-                        summary.byMethod.MIDTRANS.revenue
-                      )} (${summary.byMethod.MIDTRANS.count})`
+                      })`
+                    : "-"
+                }
+              />
+
+              <Stat
+                title="Payment Method(Midtrans)"
+                value={
+                  summary
+                    ? `${money(summary.byMethod.MIDTRANS.revenue)} (${
+                        summary.byMethod.MIDTRANS.count
+                      })`
                     : "-"
                 }
               />
