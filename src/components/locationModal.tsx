@@ -29,7 +29,7 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
 
           try {
             const res = await fetch(
-              `http://localhost:8000/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
+              `/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
             );
             const data = await res.json();
 

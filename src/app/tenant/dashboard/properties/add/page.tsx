@@ -77,7 +77,7 @@ export default function AddPropertyPage() {
                 quota: "1",
                 adultQty: "1",
                 childQty: "0",
-                roomImg: undefined as File | undefined,
+                roomImg: [] as (File | string)[],
               },
             ],
           }}
@@ -112,8 +112,12 @@ export default function AddPropertyPage() {
               if (values.picture) formData.append("picture", values.picture);
               formData.append("roomTypes", JSON.stringify(values.roomTypes));
               values.roomTypes.forEach((room, index) => {
-                if (room.roomImg) {
-                  formData.append(`roomImg_${index}`, room.roomImg);
+                if (room.roomImg && Array.isArray(room.roomImg)) {
+                  room.roomImg.forEach((img: any) => {
+                    if (img instanceof File) {
+                      formData.append(`roomImg_${index}`, img);
+                    }
+                  });
                 }
               });
 
@@ -422,17 +426,119 @@ export default function AddPropertyPage() {
                               <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Foto Kamar
                               </label>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `roomTypes.${index}.roomImg`,
-                                    e.target.files?.[0] || null 
-                                  )
-                                }
-                              />
+
+                              {/* Existing Images Preview */}
+                              {values.roomTypes[index].roomImg && Array.isArray(values.roomTypes[index].roomImg) && values.roomTypes[index].roomImg.length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-600 mb-2">Gambar yang sudah ada:</p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {values.roomTypes[index].roomImg.filter((img) => typeof img === 'string').map((img: string, imgIndex: number) => (
+                                      <div key={imgIndex} className="relative">
+                                        <Image
+                                          src={img}
+                                          alt={`Room image ${imgIndex + 1}`}
+                                          width={80}
+                                          height={80}
+                                          className="w-full h-20 object-cover rounded-lg border"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const currentImages = values.roomTypes[index].roomImg || [];
+                                            const newImages = currentImages.filter((item: any) => item !== img);
+                                            setFieldValue(`roomTypes.${index}.roomImg`, newImages);
+                                          }}
+                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* New Images Upload */}
+                              <div className="space-y-3">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                  Upload Gambar Baru
+                                </label>
+                                <div className="space-y-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <label className="cursor-pointer">
+                                      <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 text-center text-sm">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        Pilih Gambar
+                                      </div>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const files = Array.from(e.target.files || []);
+                                          const validFiles = files.filter(file => {
+                                            if (file.size > 5 * 1024 * 1024) {
+                                              alert(`File ${file.name} terlalu besar. Maksimal 5MB.`);
+                                              return false;
+                                            }
+                                            return true;
+                                          });
+
+                                          const currentImages = values.roomTypes[index].roomImg || [];
+                                          const allImages = [...currentImages, ...validFiles];
+
+                                          if (allImages.length > 10) {
+                                            alert("Maksimal 10 gambar per kamar.");
+                                            return;
+                                          }
+
+                                          setFieldValue(`roomTypes.${index}.roomImg`, allImages);
+                                        }}
+                                      />
+                                    </label>
+                                    <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+                                      <p>PNG, JPG, JPEG (Maks. 5MB per gambar)</p>
+                                      <p>Maksimal 10 gambar total</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* New Images Preview */}
+                              {values.roomTypes[index].roomImg && Array.isArray(values.roomTypes[index].roomImg) && values.roomTypes[index].roomImg.length > 0 && (
+                                <div className="mt-3">
+                                  <p className="text-sm text-gray-600 mb-2">Preview gambar baru:</p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {values.roomTypes[index].roomImg.map((img: any, imgIndex: number) => {
+                                      if (typeof img === 'string') return null; // Skip existing images
+                                      return (
+                                        <div key={`new-${imgIndex}`} className="relative">
+                                          <Image
+                                            src={URL.createObjectURL(img)}
+                                            alt={`New room image ${imgIndex + 1}`}
+                                            width={80}
+                                            height={80}
+                                            className="w-full h-20 object-cover rounded-lg border"
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const newImages = values.roomTypes[index].roomImg.filter((_: any, i: number) => i !== imgIndex);
+                                              setFieldValue(`roomTypes.${index}.roomImg`, newImages);
+                                            }}
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Description */}
@@ -463,7 +569,7 @@ export default function AddPropertyPage() {
                             quota: "1",
                             adultQty: "1",
                             childQty: "0",
-                            roomImg: null,
+                            roomImg: [],
                           })
                         }
                         className="w-full py-3 sm:py-4 border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 group"

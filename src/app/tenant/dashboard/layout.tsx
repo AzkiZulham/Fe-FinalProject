@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Building2,
-  BedDouble,
+  // BedDouble,
   FolderOpen,
   CalendarDays,
   BarChart3,
@@ -46,37 +46,23 @@ const sidebarSections: MenuSection[] = [
     label: "MANAGEMENT",
     items: [
       {
-        name: "Properties",
+        name: "Properties & Rooms",
         icon: Building2,
         children: [
           { name: "Property List", href: "/tenant/dashboard/properties" },
           { name: "Add Property", href: "/tenant/dashboard/properties/add" },
         ],
       },
-      {
-        name: "Rooms",
-        icon: BedDouble,
-        children: [
-          { name: "Room List", href: "/tenant/dashboard/rooms" },
-          { name: "Create Room", href: "/tenant/dashboard/rooms/create" },
-        ],
-      },
-      {
-        name: "Categories",
-        href: "/tenant/dashboard/categories",
-        icon: FolderOpen,
-      },
-      {
-        name: "Availability & Pricing",
-        icon: CalendarDays,
-        children: [
-          {
-            name: "Availability Calendar",
-            href: "/tenant/dashboard/",
-          },
-          { name: "Peak Season Rate", href: "/dashboard/pricing/peak" },
-        ],
-      },
+      // {
+      //   name: "Rooms",
+      //   icon: BedDouble,
+      //   children: [
+      //     { name: "Room List", href: "/tenant/dashboard/rooms" },
+      //     { name: "Create Room", href: "/tenant/dashboard/rooms/create" },
+      //   ],
+      // },
+      { name: "Categories", href: "/tenant/dashboard/categories", icon: FolderOpen }, 
+      { name: "Availability & Peak Season", href: "/tenant/dashboard/availability", icon: CalendarDays },
       {
         name: "Transaction",
         href: "/tenant/dashboard/transactions",

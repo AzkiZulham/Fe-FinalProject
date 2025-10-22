@@ -195,29 +195,12 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Aksi Cepat</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link
-            href="/tenant/dashboard/properties/add"
-            className="p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-center block"
-          >
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Link href="/tenant/dashboard/properties/add" className="p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-center block">
             <Building2 className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">
-              Tambah Properti
-            </span>
+            <span className="text-sm font-medium text-gray-700">Tambah Properti & Room</span>
           </Link>
-          <Link
-            href="/tenant/dashboard/rooms"
-            className="p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors text-center block"
-          >
-            <Bed className="h-6 w-6 text-green-600 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">
-              Kelola Kamar
-            </span>
-          </Link>
-          <Link
-            href="/tenant/dashboard/property-report"
-            className="p-4 bg-purple-50 rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors text-center block"
-          >
+          <Link href="/tenant/dashboard/availability" className="p-4 bg-purple-50 rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors text-center block">
             <Calendar className="h-6 w-6 text-purple-600 mx-auto mb-2" />
             <span className="text-sm font-medium text-gray-700">
               Lihat Jadwal
