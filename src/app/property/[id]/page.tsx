@@ -17,6 +17,7 @@ import type {
   RoomType,
   PeakSeason,
 } from "@/components/properties/types";
+import toast from "react-hot-toast";
 
 type ApiResponse = {
   property: Property & {
@@ -156,14 +157,14 @@ export default function PropertyDetailPage(): React.ReactElement {
     }
 
     if (!selectedRoom) {
-      alert("Silakan pilih tipe kamar terlebih dahulu");
+      toast.error("Silakan pilih tipe kamar terlebih dahulu");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Token autentikasi tidak ditemukan. Silakan login ulang.");
+        toast.error("Token autentikasi tidak ditemukan. Silakan login ulang.");
         window.location.href = "/login/user";
         return;
       }
@@ -196,13 +197,15 @@ export default function PropertyDetailPage(): React.ReactElement {
       const axiosError = error as AxiosError;
       console.error("Booking error:", axiosError);
       if (axiosError.response?.status === 401) {
-        alert("Sesi autentikasi kedaluwarsa. Silakan login ulang.");
+        toast.error("Sesi autentikasi kedaluwarsa. Silakan login ulang.");
         localStorage.removeItem("token");
         window.location.href = "/login/user";
       } else if (axiosError.response?.status === 403) {
-        alert("Akses ditolak. Hanya pengguna yang dapat membuat pesanan.");
+        toast.error(
+          "Akses ditolak. Hanya pengguna yang dapat membuat pesanan."
+        );
       } else {
-        alert(
+        toast.error(
           (axiosError.response?.data as { error?: string })?.error ||
             "Gagal membuat pesanan. Silakan coba lagi."
         );

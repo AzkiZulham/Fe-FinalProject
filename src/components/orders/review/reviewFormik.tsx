@@ -4,6 +4,7 @@ import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { axios } from "@/lib/axios";
 import { TransactionStatus } from "@/lib/orders/types";
+import toast from "react-hot-toast";
 
 type ReviewData = {
   id: number;
@@ -101,10 +102,7 @@ export default function ReviewSection({
                 transactionId,
                 comment: values.comment.trim(),
               });
-              setServerMsg({
-                type: "success",
-                text: res.data?.message || "Review tersimpan.",
-              });
+              toast.success(res.data?.message || "Review tersimpan.");
               resetForm();
               await fetchReview();
             } catch (e: any) {
@@ -113,6 +111,7 @@ export default function ReviewSection({
                 e?.response?.data?.message ||
                 e?.message ||
                 "Gagal menyimpan review.";
+              toast.error(msg);
               setServerMsg({ type: "error", text: msg });
             } finally {
               setSubmitting(false);

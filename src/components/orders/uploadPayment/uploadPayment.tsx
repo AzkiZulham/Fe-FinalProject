@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import { axios } from "@/lib/axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const MAX_SIZE = 1_000_000; // 1MB
 const ALLOWED = ["image/jpeg", "image/png"];
@@ -31,7 +32,6 @@ export default function UploadPaymentProofFormik({
   onDone?: () => void;
 }) {
   const [serverErr, setServerErr] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -46,7 +46,6 @@ export default function UploadPaymentProofFormik({
         validationSchema={paymentProofSchema}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
           setServerErr(null);
-          setSuccessMsg(null);
           try {
             const fd = new FormData();
             fd.append("file", values.pp);
@@ -55,7 +54,7 @@ export default function UploadPaymentProofFormik({
             const res = await axios.post("/api/payment/manual", fd, {
               headers: { "Content-Type": "multipart/form-data" },
             });
-            setSuccessMsg(
+            toast.success(
               res.data?.message ||
                 "Bukti pembayaran terunggah. Menunggu konfirmasi."
             );
@@ -72,6 +71,7 @@ export default function UploadPaymentProofFormik({
               error.response?.data?.message ||
               error.message ||
               "Gagal mengunggah bukti bayar";
+            toast.error(msg);
             setServerErr(msg);
           } finally {
             setSubmitting(false);
@@ -106,9 +106,6 @@ export default function UploadPaymentProofFormik({
             </div>
 
             {serverErr && <p className="text-sm text-rose-600">{serverErr}</p>}
-            {successMsg && (
-              <p className="text-sm text-emerald-600">{successMsg}</p>
-            )}
 
             <button
               type="submit"

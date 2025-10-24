@@ -5,6 +5,7 @@ import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { axios } from "@/lib/axios";
 import type { TransactionStatus } from "@/lib/orders/types";
+import toast from "react-hot-toast";
 
 type ReviewData = {
   id: number;
@@ -55,7 +56,7 @@ export default function ReplyReviewFormik({
     setReview(null);
     try {
       const res = await axios.get<{ message: string; data: ReviewData }>(
-        `/api/review/${transactionId}`
+        `/api/review/tenant/${transactionId}`
       );
       setReview(res.data.data ?? null);
     } catch (e: any) {
@@ -91,9 +92,7 @@ export default function ReplyReviewFormik({
 
           {review.tenantReply && (
             <div>
-              <div className="text-xs text-gray-500">
-                Balasan Tenant (sebelumnya)
-              </div>
+              <div className="text-xs text-gray-500">Balasan Tenant</div>
               <div className="rounded-md border bg-white p-3 text-sm">
                 {review.tenantReply}
               </div>
@@ -102,7 +101,7 @@ export default function ReplyReviewFormik({
         </div>
       )}
 
-      {!loading && canReply && review && (
+      {!loading && review && !review.tenantReply && canReply && (
         <Formik
           initialValues={{ reply: review.tenantReply || "" }}
           enableReinitialize
@@ -113,7 +112,7 @@ export default function ReplyReviewFormik({
               await axios.patch(`/api/review/${review.id}/reply`, {
                 reply: values.reply.trim(),
               });
-              setServerMsg({ type: "success", text: "Balasan terkirim." });
+              toast.success("Balasan terkirim.");
               await fetchReview();
               onDone?.();
             } catch (e: any) {
@@ -122,6 +121,7 @@ export default function ReplyReviewFormik({
                 e?.response?.data?.message ||
                 e?.message ||
                 "Gagal mengirim balasan.";
+              toast.error(msg);
               setServerMsg({ type: "error", text: msg });
             } finally {
               setSubmitting(false);
