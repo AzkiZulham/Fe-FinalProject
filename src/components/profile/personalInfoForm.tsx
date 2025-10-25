@@ -3,7 +3,16 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, MailCheck, User, Phone, Calendar, Mail, VenusAndMars } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  MailCheck,
+  User,
+  Phone,
+  Calendar,
+  Mail,
+  VenusAndMars,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,16 +35,6 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
-  // // DEBUG: Cek struktur data yang diterima
-  // console.log("userData di PersonalInfoForm:", userData);
-  // console.log("Individual fields:", {
-  //   userName: userData?.userName,
-  //   email: userData?.email,
-  //   phoneNumber: userData?.phoneNumber,
-  //   birthDate: userData?.birthDate,
-  //   gender: userData?.gender,
-  // });
-
   if (!userData) {
     return <p className="text-gray-500">Memuat data pengguna...</p>;
   }
@@ -44,11 +43,12 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
     setUserData((prev) => ({
       ...prev,
       [field]: value,
-      // Reset status verifikasi email jika email diubah
-      ...(field === "email" && value !== prev.email ? { 
-        isEmailVerified: false,
-        isEmailUpdated: true 
-      } : {}),
+      ...(field === "email" && value !== prev.email
+        ? {
+            isEmailVerified: false,
+            isEmailUpdated: true,
+          }
+        : {}),
     }));
   };
 
@@ -86,25 +86,31 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
 
       if (!res.ok) throw new Error(body.message || "Update profil gagal");
 
-      // Update user data dengan response dari backend
       setUserData((prev) => ({
         ...prev,
         ...body.user,
-        // Reset status verifikasi email jika email diubah
-        isEmailVerified: body.user.isEmailVerified !== undefined 
-          ? body.user.isEmailVerified 
-          : (prev.email === body.user.email ? prev.isEmailVerified : false),
-        isEmailUpdated: body.user.isEmailUpdated !== undefined
-          ? body.user.isEmailUpdated
-          : (prev.email !== body.user.email),
+        isEmailVerified:
+          body.user.isEmailVerified !== undefined
+            ? body.user.isEmailVerified
+            : prev.email === body.user.email
+            ? prev.isEmailVerified
+            : false,
+        isEmailUpdated:
+          body.user.isEmailUpdated !== undefined
+            ? body.user.isEmailUpdated
+            : prev.email !== body.user.email,
       }));
 
-      // Menampilkan modal berdasarkan perubahan email
       const emailChanged = userData.email !== body.user?.email;
 
-      if (emailChanged || body.message?.toLowerCase().includes("verifikasi email")) {
+      if (
+        emailChanged ||
+        body.message?.toLowerCase().includes("verifikasi email")
+      ) {
         setShowVerificationModal(true);
-        toast.success("Profil berhasil diperbarui. Silakan verifikasi email baru Anda.");
+        toast.success(
+          "Profil berhasil diperbarui. Silakan verifikasi email baru Anda."
+        );
       } else {
         setShowSuccessModal(true);
         toast.success(body.message || "Profil berhasil diperbarui");
@@ -118,32 +124,33 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
     }
   };
 
-  // Helper untuk menentukan kelas CSS berdasarkan nilai input
-  const getFieldClassName = (value: string) => 
+  const getFieldClassName = (value: string) =>
     !value ? "border-orange-300 bg-orange-50 placeholder-orange-400" : "";
 
-  // Helper untuk format tanggal
   const formatBirthDate = (dateString: string) => {
     if (!dateString) return "Belum diisi";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     } catch {
       return dateString;
     }
   };
 
-  // Helper untuk format gender
   const formatGender = (gender: string) => {
     switch (gender) {
-      case 'MALE': return 'Laki-laki';
-      case 'FEMALE': return 'Perempuan';
-      case 'OTHER': return 'Lainnya';
-      default: return 'Belum diisi';
+      case "MALE":
+        return "Laki-laki";
+      case "FEMALE":
+        return "Perempuan";
+      case "OTHER":
+        return "Lainnya";
+      default:
+        return "Belum diisi";
     }
   };
 
@@ -160,10 +167,12 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             <User className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-blue-800 font-medium">Nama Lengkap</p>
-              <p className="text-gray-700">{userData.userName || "Belum diisi"}</p>
+              <p className="text-gray-700">
+                {userData.userName || "Belum diisi"}
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-3">
             <Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -171,23 +180,27 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
               <p className="text-gray-700">{userData.email || "Belum diisi"}</p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-3">
             <Phone className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-blue-800 font-medium">Nomor Telepon</p>
-              <p className="text-gray-700">{userData.phoneNumber || "Belum diisi"}</p>
+              <p className="text-gray-700">
+                {userData.phoneNumber || "Belum diisi"}
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-3">
             <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-blue-800 font-medium">Tanggal Lahir</p>
-              <p className="text-gray-700">{formatBirthDate(userData.birthDate)}</p>
+              <p className="text-gray-700">
+                {formatBirthDate(userData.birthDate)}
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-3">
             <VenusAndMars className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -200,8 +213,16 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-blue-800 font-medium">Status Verifikasi</p>
-              <p className={`font-medium ${userData.isEmailVerified ? 'text-green-600' : 'text-orange-600'}`}>
-                {userData.isEmailVerified ? 'Email Terverifikasi' : 'Belum Verifikasi'}
+              <p
+                className={`font-medium ${
+                  userData.isEmailVerified
+                    ? "text-green-600"
+                    : "text-orange-600"
+                }`}
+              >
+                {userData.isEmailVerified
+                  ? "Email Terverifikasi"
+                  : "Belum Verifikasi"}
               </p>
             </div>
           </div>
@@ -217,11 +238,7 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             id="userName"
             value={userData.userName || ""}
             onChange={(e) => handleChange("userName", e.target.value)}
-            placeholder={
-              userData.userName 
-                ? "" 
-                : "Masukkan nama lengkap Anda"
-            }
+            placeholder={userData.userName ? "" : "Masukkan nama lengkap Anda"}
             className={getFieldClassName(userData.userName)}
           />
           {userData.userName ? (
@@ -239,11 +256,7 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             type="email"
             value={userData.email || ""}
             onChange={(e) => handleChange("email", e.target.value)}
-            placeholder={
-              userData.email 
-                ? "" 
-                : "Masukkan alamat email aktif"
-            }
+            placeholder={userData.email ? "" : "Masukkan alamat email aktif"}
             className={getFieldClassName(userData.email)}
           />
           {userData.email ? (
@@ -260,17 +273,15 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             id="phoneNumber"
             value={userData.phoneNumber || ""}
             onChange={(e) => handleChange("phoneNumber", e.target.value)}
-            placeholder={
-              userData.phoneNumber 
-                ? "" 
-                : "Contoh: 081234567890"
-            }
+            placeholder={userData.phoneNumber ? "" : "Contoh: 081234567890"}
             className={getFieldClassName(userData.phoneNumber)}
           />
           {userData.phoneNumber ? (
             <p className="text-sm text-green-600 mt-1">✓ Data terisi</p>
           ) : (
-            <p className="text-sm text-gray-500 mt-1">Opsional - untuk notifikasi penting</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Opsional - untuk notifikasi penting
+            </p>
           )}
         </div>
 
@@ -287,7 +298,9 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           {userData.birthDate ? (
             <p className="text-sm text-green-600 mt-1">✓ Data terisi</p>
           ) : (
-            <p className="text-sm text-gray-500 mt-1">Opsional - pilih tanggal lahir Anda</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Opsional - pilih tanggal lahir Anda
+            </p>
           )}
         </div>
 
@@ -298,7 +311,9 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             id="gender"
             value={userData.gender || ""}
             onChange={(e) => handleChange("gender", e.target.value)}
-            className={`w-full border rounded px-2 py-1 ${getFieldClassName(userData.gender)}`}
+            className={`w-full border rounded px-2 py-1 ${getFieldClassName(
+              userData.gender
+            )}`}
           >
             <option value="">Pilih Jenis Kelamin</option>
             <option value="MALE">Laki-laki</option>
@@ -308,14 +323,16 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           {userData.gender ? (
             <p className="text-sm text-green-600 mt-1">✓ Data terisi</p>
           ) : (
-            <p className="text-sm text-gray-500 mt-1">Opsional - pilih jenis kelamin Anda</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Opsional - pilih jenis kelamin Anda
+            </p>
           )}
         </div>
 
         {/* Submit Button */}
         <div className="flex justify-end pt-4">
-          <Button 
-            onClick={handleUpdate} 
+          <Button
+            onClick={handleUpdate}
             disabled={isUpdating}
             className="min-w-32"
           >
@@ -359,11 +376,12 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
                 Email Anda telah diubah menjadi <b>{userData.email}</b>.
               </p>
               <p>
-                Kami telah mengirimkan link verifikasi ke email baru Anda. 
+                Kami telah mengirimkan link verifikasi ke email baru Anda.
                 Silakan cek inbox atau folder spam untuk mengaktifkan email ini.
               </p>
               <p className="mt-3 text-sm text-orange-600">
-                Status email akan berubah menjadi &quot;Terverifikasi&quot; setelah Anda mengklik link verifikasi.
+                Status email akan berubah menjadi &quot;Terverifikasi&quot;
+                setelah Anda mengklik link verifikasi.
               </p>
             </DialogDescription>
           </DialogHeader>

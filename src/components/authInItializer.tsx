@@ -13,7 +13,11 @@ type JWTPayload = {
   exp?: number;
 };
 
-export default function AuthInitializer({ children }: { children: React.ReactNode }) {
+export default function AuthInitializer({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,7 +28,6 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
     if (initialized) return;
 
     const tokenFromUrl = searchParams.get("token");
-    const tokenFromStorage = localStorage.getItem("token");
 
     const processJWT = (token: string) => {
       try {
@@ -32,7 +35,6 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
         const now = Date.now() / 1000;
 
         if (!payload.exp || payload.exp > now) {
-          // Set user di context + simpan token
           login(
             {
               id: payload.id,
@@ -44,13 +46,15 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
           );
           localStorage.setItem("token", token);
 
-          // Redirect sesuai role jika sedang di halaman login / root
-          if (pathname === "/" || pathname === "/login" || pathname === "/verify-password") {
+          if (
+            pathname === "/" ||
+            pathname === "/login" ||
+            pathname === "/verify-password"
+          ) {
             if (payload.role === "TENANT") router.replace("/tenant/dashboard");
-            else router.replace("/"); // USER
+            else router.replace("/");
           }
         } else {
-          // Token expired → bersihkan storage
           localStorage.removeItem("token");
         }
       } catch (err) {
@@ -61,17 +65,17 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
 
     if (tokenFromUrl) {
       const isJWT = tokenFromUrl.split(".").length === 3;
+      const isHexToken = /^[a-f0-9]{64}$/.test(tokenFromUrl);
+
       if (isJWT) {
         processJWT(tokenFromUrl);
+      } else if (pathname.includes("reset-password")) {
+      } else if (pathname.includes("verify-password")) {
+      } else if (isHexToken) {
+        router.replace(`/reset-password?token=${tokenFromUrl}`);
       } else {
-        // Token verify-password
-        localStorage.setItem("verifyToken", tokenFromUrl);
-        if (pathname !== "/verify-password") {
-          router.replace("/verify-password");
-        }
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-password?token=${tokenFromUrl}`;
       }
-    } else if (tokenFromStorage) {
-      processJWT(tokenFromStorage);
     }
 
     setInitialized(true);

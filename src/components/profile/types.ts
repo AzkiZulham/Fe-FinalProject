@@ -4,7 +4,7 @@ export interface UserData {
   avatar: string;
   phoneNumber: string;
   birthDate: string;
-  gender: "MALE" | "FEMALE" | "OTHER" | "";
+  gender: string;
   verified: boolean;
   isEmailUpdated: boolean;
   isEmailVerified?: boolean; 

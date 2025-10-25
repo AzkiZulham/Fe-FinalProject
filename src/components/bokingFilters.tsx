@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 import { ChevronDown, MapPin, Calendar, Users, Search } from "lucide-react";
 
@@ -42,8 +42,22 @@ type BookingFilterProps = {
   };
 };
 
-export default function BookingFilter({ noHeroMargin = false, onSearch, initialCriteria }: BookingFilterProps) {
-  const [city, setCity] = useState<CityOption | null>(initialCriteria?.city ? cityOptions.find(c => c.value === initialCriteria.city) || null : null);
+type LocationData = {
+  lat: number;
+  lng: number;
+  city: string;
+};
+
+export default function BookingFilter({
+  noHeroMargin = false,
+  onSearch,
+  initialCriteria,
+}: BookingFilterProps) {
+  const [city, setCity] = useState<CityOption | null>(
+    initialCriteria?.city
+      ? cityOptions.find((c) => c.value === initialCriteria.city) || null
+      : null
+  );
   const [checkIn, setCheckIn] = useState(initialCriteria?.checkIn || "");
   const [checkOut, setCheckOut] = useState(initialCriteria?.checkOut || "");
   const [adultQty, setAdultQty] = useState(initialCriteria?.adultQty || 1);
@@ -51,7 +65,29 @@ export default function BookingFilter({ noHeroMargin = false, onSearch, initialC
   const [roomQty, setRoomQty] = useState(initialCriteria?.roomQty || 1);
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
 
-  // 🧭 Handle cari properti
+  useEffect(() => {
+    const storedLocation = localStorage.getItem("userLocation");
+    if (storedLocation) {
+      try {
+        const location: LocationData = JSON.parse(storedLocation);
+        const closestCity = cityOptions.reduce((closest, current) => {
+          const closestDistance = Math.sqrt(
+            Math.pow(closest.lat - location.lat, 2) +
+              Math.pow(closest.lng - location.lng, 2)
+          );
+          const currentDistance = Math.sqrt(
+            Math.pow(current.lat - location.lat, 2) +
+              Math.pow(current.lng - location.lng, 2)
+          );
+          return currentDistance < closestDistance ? current : closest;
+        });
+        setCity(closestCity);
+      } catch (error) {
+        console.error("Error parsing stored location:", error);
+      }
+    }
+  }, []);
+
   const handleSearch = () => {
     if (onSearch) {
       const criteria = {
@@ -99,7 +135,9 @@ export default function BookingFilter({ noHeroMargin = false, onSearch, initialC
           placeholder="Pilih kota atau area"
           className="mt-1"
           components={{
-            DropdownIndicator: () => <ChevronDown className="w-4 h-4 text-gray-500 mr-2" />,
+            DropdownIndicator: () => (
+              <ChevronDown className="w-4 h-4 text-gray-500 mr-2" />
+            ),
             IndicatorSeparator: () => null,
           }}
           menuPortalTarget={document.body}
@@ -108,8 +146,12 @@ export default function BookingFilter({ noHeroMargin = false, onSearch, initialC
               ...provided,
               padding: "6px 8px",
               borderRadius: "12px",
-              border: state.isFocused ? "2px solid #3b82f6" : "2px solid #e5e7eb",
-              boxShadow: state.isFocused ? "0 0 0 3px rgba(59, 130, 246, 0.1)" : "none",
+              border: state.isFocused
+                ? "2px solid #3b82f6"
+                : "2px solid #e5e7eb",
+              boxShadow: state.isFocused
+                ? "0 0 0 3px rgba(59, 130, 246, 0.1)"
+                : "none",
               transition: "all 0.2s ease",
               "&:hover": {
                 borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
@@ -153,25 +195,50 @@ export default function BookingFilter({ noHeroMargin = false, onSearch, initialC
             className="mt-1 w-full border-2 border-gray-200 rounded-xl px-4 py-3 cursor-pointer bg-white flex justify-between items-center transition-all duration-200 hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100"
             onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
           >
-            <span className={`${!adultQty && !childQty && !roomQty ? "text-gray-400" : "text-gray-700"}`}>
+            <span
+              className={`${
+                !adultQty && !childQty && !roomQty
+                  ? "text-gray-400"
+                  : "text-gray-700"
+              }`}
+            >
               {formatGuestText()}
             </span>
             <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isGuestDropdownOpen ? "rotate-180" : ""
-                }`}
+              className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                isGuestDropdownOpen ? "rotate-180" : ""
+              }`}
             />
           </div>
 
           {isGuestDropdownOpen && (
             <div className="absolute top-full left-0 right-0 bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[9999] p-6 mt-2 space-y-4">
               {/* Dewasa */}
-              <GuestCounter label="Dewasa" sub="Usia 13+" value={adultQty} setValue={setAdultQty} min={1} />
+              <GuestCounter
+                label="Dewasa"
+                sub="Usia 13+"
+                value={adultQty}
+                setValue={setAdultQty}
+                min={1}
+              />
 
               {/* Anak */}
-              <GuestCounter label="Anak" sub="Usia 2-12" value={childQty} setValue={setChildQty} min={0} />
+              <GuestCounter
+                label="Anak"
+                sub="Usia 2-12"
+                value={childQty}
+                setValue={setChildQty}
+                min={0}
+              />
 
               {/* Kamar */}
-              <GuestCounter label="Kamar" sub="Jumlah kamar" value={roomQty} setValue={setRoomQty} min={1} />
+              <GuestCounter
+                label="Kamar"
+                sub="Jumlah kamar"
+                value={roomQty}
+                setValue={setRoomQty}
+                min={1}
+              />
 
               <div className="pt-4 border-t border-gray-200">
                 <button
@@ -199,7 +266,15 @@ export default function BookingFilter({ noHeroMargin = false, onSearch, initialC
   );
 }
 
-function Field({ label, children, icon }: { label: string; children: React.ReactNode; icon?: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  icon,
+}: {
+  label: string;
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+}) {
   return (
     <div className="flex-1 w-full relative">
       <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
@@ -264,7 +339,9 @@ function GuestCounter({
         >
           −
         </button>
-        <span className="w-8 text-center font-semibold text-gray-900">{value}</span>
+        <span className="w-8 text-center font-semibold text-gray-900">
+          {value}
+        </span>
         <button
           onClick={() => setValue(value + 1)}
           className="w-10 h-10 border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"

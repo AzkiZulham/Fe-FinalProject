@@ -3,10 +3,9 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-// ✅ Validasi Yup
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
     .min(8, "Password minimal 8 karakter")
@@ -16,7 +15,6 @@ const ResetPasswordSchema = Yup.object().shape({
     .required("Konfirmasi password wajib diisi"),
 });
 
-// ✅ Cek kekuatan password
 function getPasswordStrength(password: string) {
   let score = 0;
   if (password.length >= 8) score++;
@@ -25,9 +23,12 @@ function getPasswordStrength(password: string) {
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
-  if (score <= 2) return { level: "Lemah", color: "bg-red-500", width: "w-1/4" };
-  if (score === 3) return { level: "Sedang", color: "bg-yellow-500", width: "w-2/4" };
-  if (score === 4) return { level: "Kuat", color: "bg-blue-500", width: "w-3/4" };
+  if (score <= 2)
+    return { level: "Lemah", color: "bg-red-500", width: "w-1/4" };
+  if (score === 3)
+    return { level: "Sedang", color: "bg-yellow-500", width: "w-2/4" };
+  if (score === 4)
+    return { level: "Kuat", color: "bg-blue-500", width: "w-3/4" };
   return { level: "Sangat Kuat", color: "bg-green-500", width: "w-full" };
 }
 
@@ -50,6 +51,30 @@ export default function ResetPasswordPage() {
   const [passwordInput, setPasswordInput] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [tokenChecked, setTokenChecked] = useState<
+    "checking" | "valid" | "invalid"
+  >("checking");
+
+  // ==== Check token validity ====
+  useEffect(() => {
+    const checkToken = async () => {
+      if (!token) return setTokenChecked("invalid");
+
+      try {
+        const res = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          }/api/auth/check-reset-token?token=${token}`
+        );
+        const data = await res.json();
+        setTokenChecked(res.ok && data.valid ? "valid" : "invalid");
+      } catch (err) {
+        console.error("Token check failed:", err);
+        setTokenChecked("invalid");
+      }
+    };
+    checkToken();
+  }, [token]);
 
   if (!token) {
     return (
@@ -66,6 +91,35 @@ export default function ResetPasswordPage() {
     );
   }
 
+  if (tokenChecked === "checking") {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+        <div className="bg-white p-6 rounded-2xl shadow-md max-w-md text-center">
+          <h1 className="text-2xl font-semibold text-[#2f567a] mb-4">
+            Memverifikasi token...
+          </h1>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2f567a] mx-auto"></div>
+        </div>
+      </main>
+    );
+  }
+
+  if (tokenChecked === "invalid") {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+        <div className="bg-white p-6 rounded-2xl shadow-md max-w-md text-center">
+          <h1 className="text-3xl font-semibold text-[#2f567a] mb-4">
+            Token tidak valid!
+          </h1>
+          <p className="text-sm text-gray-500">
+            Token mungkin sudah kadaluarsa atau tidak valid. Silakan ulangi
+            proses reset password.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   const strength = getPasswordStrength(passwordInput);
   const checks = getPasswordChecks(passwordInput);
 
@@ -75,7 +129,9 @@ export default function ResetPasswordPage() {
         <h1 className="text-2xl font-bold text-center text-[#2f567a] mb-2">
           Reset Password
         </h1>
-        <p className="text-sm text-gray-500 text-center mb-12">Masukan password baru anda</p>
+        <p className="text-sm text-gray-500 text-center mb-12">
+          Masukan password baru anda
+        </p>
 
         {!success ? (
           <Formik
@@ -83,21 +139,24 @@ export default function ResetPasswordPage() {
             validationSchema={ResetPasswordSchema}
             onSubmit={async (values, { setSubmitting }) => {
               try {
-                const res = await fetch("/api/reset-password", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    token,
-                    password: values.password,
-                  }),
-                });
+                const res = await fetch(
+                  `${
+                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+                  }/api/auth/reset-password`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      token,
+                      password: values.password,
+                    }),
+                  }
+                );
 
                 if (res.ok) {
                   const data = await res.json();
                   setSuccess(true);
-
-                  // 🔥 Redirect sesuai role
-                  if (data.role === "tenant") {
+                  if (data.user?.role === "TENANT") {
                     setTimeout(() => router.push("/login/tenant"), 2000);
                   } else {
                     setTimeout(() => router.push("/login/user"), 2000);
@@ -123,7 +182,9 @@ export default function ResetPasswordPage() {
                     <Field
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      onKeyUp={(e: React.ChangeEvent<HTMLInputElement>) => setPasswordInput(e.target.value)}
+                      onKeyUp={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPasswordInput(e.target.value)
+                      }
                       placeholder="Masukan password baru"
                       className="mt-2 w-full px-4 py-3 rounded-4xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-none focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
                     />

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-hot-toast";
 
 type User = {
   id: string;
@@ -56,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const decoded: DecodedToken = jwtDecode(token);
       const now = Date.now() / 1000;
 
-      // Kalau token valid, ambil data lengkap user dari API
       if (!decoded.exp || decoded.exp > now) {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/me`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 u.verified || u.isEmailVerified || u.emailVerified || false,
               email: u.email || decoded.email,
               username: u.userName || decoded.username || "",
-              avatar: u.avatar || "/default-avatar.png",
+              avatar: u.profileImg || "/default-avatar.png",
               phoneNumber: u.phoneNumber || "",
               birthDate: u.birthDate || "",
               gender: u.gender || "",
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
           .catch((err) => {
             console.error("Error fetching user:", err);
-            // fallback ke token decode
+
             setUser({
               id: decoded.id,
               role: decoded.role,
@@ -113,9 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem("auth");
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
     localStorage.removeItem("auth_token");
     localStorage.removeItem("verifyToken");
-    router.push("/");
+    toast.success("Berhasil logout!");
+
+    setTimeout(() => {
+      window.location.reload();
+      router.push("/");
+    }, 1500);
   };
 
   return (

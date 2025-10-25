@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -15,7 +15,7 @@ interface CatalogProperty {
   availableRooms?: number;
   rating?: number;
   reviewCount?: number;
-  totalTransactions?: number; 
+  totalTransactions?: number;
 }
 
 type LocationData = {
@@ -32,7 +32,10 @@ interface Props {
 }
 
 function PropertyCard({ property }: { property: CatalogProperty }) {
-  const isAvailable = property.price !== null && property.price !== undefined && (property.availableRooms || 0) > 0;
+  const isAvailable =
+    property.price !== null &&
+    property.price !== undefined &&
+    (property.availableRooms || 0) > 0;
 
   return (
     <Link href={`/property/${property.id}`}>
@@ -46,11 +49,13 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute top-3 right-3">
-            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              isAvailable
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
-            }`}>
+            <div
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                isAvailable
+                  ? "bg-green-500 text-white"
+                  : "bg-red-500 text-white"
+              }`}
+            >
               {isAvailable ? "Tersedia" : "Penuh"}
             </div>
           </div>
@@ -63,28 +68,27 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
             </h3>
             {property.rating && (
               <div className="flex items-center gap-1 text-sm text-gray-600">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{property.rating}</span>
-                {property.reviewCount && (
-                  <span className="text-gray-400">({property.reviewCount})</span>
-                )}
                 {property.totalTransactions && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Dipesan {property.totalTransactions} kali
-                </div>
-              )}
+                  <div className="text-xs text-gray-500 mt-1">
+                    Dipesan {property.totalTransactions} kali
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           <div className="flex items-center text-sm text-gray-500 mb-3">
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{property.address || "Lokasi tidak tersedia"}</span>
+            <span className="line-clamp-1">
+              {property.address || "Lokasi tidak tersedia"}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Mulai dari</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Mulai dari
+              </span>
               <span className="text-xl font-bold text-[#2f567a]">
                 Rp {property.price?.toLocaleString("id-ID") || "N/A"}
               </span>
@@ -109,7 +113,10 @@ function LoadingSkeleton() {
       <div className="h-8 bg-gray-200 rounded-lg w-64 mb-6 animate-pulse"></div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+          <div
+            key={i}
+            className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm animate-pulse"
+          >
             <div className="w-full h-48 bg-gray-200"></div>
             <div className="p-5">
               <div className="h-5 bg-gray-200 rounded mb-2"></div>
@@ -130,8 +137,14 @@ function LoadingSkeleton() {
   );
 }
 
-export default function PropertyList({ properties: initialProperties = [], limit, showSection = true, location }: Props) {
-  const [properties, setProperties] = useState<CatalogProperty[]>(initialProperties);
+export default function PropertyList({
+  properties: initialProperties = [],
+  limit,
+  showSection = true,
+  location,
+}: Props) {
+  const [properties, setProperties] =
+    useState<CatalogProperty[]>(initialProperties);
   const [loading, setLoading] = useState(initialProperties.length === 0);
 
   useEffect(() => {
@@ -139,17 +152,18 @@ export default function PropertyList({ properties: initialProperties = [], limit
       const fetchProperties = async () => {
         try {
           setLoading(true);
-          const params: any = {
-            page: 1,
-            limit: limit || 6,
-          };
+          const endpoint = location
+            ? "/api/properties/nearby"
+            : "/api/properties/top";
+          const params: any = { limit: limit || 6 };
           if (location) {
             params.lat = location.lat;
             params.lng = location.lng;
+            params.radius = 50;
           }
           const res = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/properties/top`,
-            { params: { limit: limit || 6 } }
+            `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+            { params }
           );
           setProperties(res.data.data || []);
         } catch (error) {
@@ -200,20 +214,22 @@ export default function PropertyList({ properties: initialProperties = [], limit
     return content;
   }
 
+  const sectionTitle = "Properti Terpopuler";
+  const sectionDescription =
+    "Penginapan dengan jumlah pemesanan terbanyak minggu ini";
+
   return (
     <section className="py-12 px-4 max-w-7xl mx-auto">
       <div className="text-center mb-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">
-        Properti Terpopuler
-      </h2>
-      <p className="text-gray-600 max-w-2xl mx-auto">
-        Penginapan dengan jumlah pemesanan terbanyak minggu ini
-      </p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          {sectionTitle}
+        </h2>
+        <p className="text-gray-600 max-w-2xl mx-auto">{sectionDescription}</p>
       </div>
       {content}
       <div className="text-center mt-15">
         <button
-          onClick={() => window.location.href = '/property'}
+          onClick={() => (window.location.href = "/property")}
           className="px-6 py-3 bg-[#2f567a] text-white rounded-full hover:bg-[#7ba2c5] transition-colors"
         >
           Lihat Semua Properti

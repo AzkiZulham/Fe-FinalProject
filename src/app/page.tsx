@@ -16,8 +16,12 @@ type LocationData = {
 export default function HomePage() {
   const [location, setLocation] = useState<LocationData | null>(null);
 
+  useEffect(() => {
+    if (location) {
+    }
+  }, [location]);
+
   const handleLocationDetected = (detectedLocation: LocationData) => {
-    console.log("Lokasi user terdeteksi:", detectedLocation);
     setLocation(detectedLocation);
     localStorage.setItem("userLocation", JSON.stringify(detectedLocation));
   };
@@ -39,11 +43,9 @@ export default function HomePage() {
       <LocationModal onLocationDetected={handleLocationDetected} />
       <Hero />
       <div className="relative -mt-32 md:-mt-40 lg:-mt-48 z-[9999]">
-        <BookingFilter
-          noHeroMargin={true}
-        />
+        <BookingFilter noHeroMargin={true} />
       </div>
-      <PropertyList limit={6} location={location} />
+      <PropertyList limit={6} />
       <Footer />
     </main>
   );

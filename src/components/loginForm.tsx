@@ -6,8 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "@/context/authContext"; 
-
+import { useAuth } from "@/context/authContext";
 
 type Props = {
   role: "USER" | "TENANT";
@@ -29,7 +28,7 @@ const LoginSchema = Yup.object().shape({
 
 export default function LoginForm({ role, redirectOnSuccess }: Props) {
   const router = useRouter();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -43,24 +42,31 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
     };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        setServerError(data?.message || data?.error || `Login gagal (status ${res.status})`);
+        setServerError(
+          data?.message || data?.error || `Login gagal (status ${res.status})`
+        );
 
         return;
       }
 
       login(data.user, data.token);
 
-      const destination = redirectOnSuccess || (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
+      const destination =
+        redirectOnSuccess ||
+        (role === "TENANT" ? "/tenant/dashboard" : "/user/profile");
       router.push(data.redirect || destination);
     } catch (err: unknown) {
       console.error("Login error:", err);
@@ -130,11 +136,11 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
                   placeholder="Masukkan password"
                 />
                 <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
               <ErrorMessage
@@ -160,15 +166,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               </button>
 
               <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
-                    aria-label="Remember me"
-                  />
-                  <span>Ingat Saya</span>
-                </label>
-
+                <label className="flex items-center gap-2"></label>
                 <a
                   href="/forgot-password"
                   className="hover:text-[#3a6b97] font-semibold hover:underline transition text-medium"
@@ -191,7 +189,9 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
 
       <div className="space-y-3">
         <button
-          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
+          onClick={() =>
+            (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`)
+          }
           className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
         >
           <FaGoogle className="w-5 h-5" />
@@ -199,7 +199,9 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         </button>
 
         <button
-          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`}
+          onClick={() =>
+            (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`)
+          }
           className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
         >
           <FaFacebook className="w-5 h-5" />

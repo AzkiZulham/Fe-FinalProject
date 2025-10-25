@@ -29,7 +29,8 @@ export default function AvailabilityCalendarPage() {
   const [error, setError] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,8 +38,6 @@ export default function AvailabilityCalendarPage() {
 
       try {
         setLoading(true);
-
-        // Fetch property details
         const propertyRes = await axios.get<{ data: Property[] }>(
           `${API_URL}/api/properties/dashboard/my`,
           {
@@ -55,8 +54,6 @@ export default function AvailabilityCalendarPage() {
           return;
         }
         setProperty(foundProperty);
-
-        // Fetch room types
         const roomTypesRes = await axios.get<{ items: RoomType[] }>(
           `${API_URL}/api/report/tenant-roomtype`,
           {

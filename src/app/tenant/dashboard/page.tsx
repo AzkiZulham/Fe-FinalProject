@@ -11,6 +11,7 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
+import ProtectedPage from "@/components/protectedPage";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -82,6 +83,7 @@ export default function DashboardPage() {
   }
 
   return (
+    <ProtectedPage role="TENANT">
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
@@ -216,5 +218,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </ProtectedPage>
   );
 }

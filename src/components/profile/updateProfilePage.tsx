@@ -24,7 +24,7 @@ export default function UpdateProfilePage() {
     phoneNumber: "",
     birthDate: "",
     gender: "",
-    avatar: "/default-avatar.png",
+    avatar: "",
     verified: false,
     isEmailUpdated: false,
   });
@@ -37,7 +37,7 @@ export default function UpdateProfilePage() {
         phoneNumber: user.phoneNumber || "",
         birthDate: user.birthDate ? user.birthDate.split("T")[0] : "",
         gender: user.gender || "",
-        avatar: user.avatar || "/default-avatar.png",
+        avatar: user.avatar || "",
         verified: user.verified || false,
         isEmailUpdated: false,
       });

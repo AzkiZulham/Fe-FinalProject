@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Building2,
-  // BedDouble,
   FolderOpen,
   CalendarDays,
   BarChart3,
@@ -15,13 +14,14 @@ import {
   Menu,
   X,
   ChevronDown,
-  HelpCircle,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
   Newspaper,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 // ================= Types =================
 type MenuItem = {
@@ -53,14 +53,6 @@ const sidebarSections: MenuSection[] = [
           { name: "Add Property", href: "/tenant/dashboard/properties/add" },
         ],
       },
-      // {
-      //   name: "Rooms",
-      //   icon: BedDouble,
-      //   children: [
-      //     { name: "Room List", href: "/tenant/dashboard/rooms" },
-      //     { name: "Create Room", href: "/tenant/dashboard/rooms/create" },
-      //   ],
-      // },
       { name: "Categories", href: "/tenant/dashboard/categories", icon: FolderOpen }, 
       { name: "Availability & Peak Season", href: "/tenant/dashboard/availability", icon: CalendarDays },
       {
@@ -85,10 +77,18 @@ const sidebarSections: MenuSection[] = [
     ],
   },
   {
-    label: "HELP & SUPPORT",
+    label: "HELP DESK",
     items: [
-      { name: "Settings", href: "/dashboard/settings", icon: Settings },
-      { name: "Support", href: "/dashboard/support", icon: HelpCircle },
+      { 
+        name: "Settings", 
+        icon: Settings,
+        children: [
+          {
+            name: "Profile",
+            href: "/tenant/dashboard/settings/profile",
+          },
+        ],
+      },
     ],
   },
 ];
@@ -118,6 +118,22 @@ function DesktopSidebar({
 
   const toggleExpand = (name: string) =>
     setExpanded(expanded === name ? null : name);
+
+const router = useRouter();
+const handleLogout = () => {
+  localStorage.removeItem("auth");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("role");
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("verifyToken");
+  toast.success("Berhasil logout!");
+
+    setTimeout(() => {
+      window.location.reload();
+      router.push("/");
+    }, 1500);
+  };
 
   return (
     <aside
@@ -225,10 +241,13 @@ function DesktopSidebar({
 
       {/* Logout */}
       <div className="px-2 py-4 border-t border-white/10">
-        <button className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-white/10 transition">
-          <LogOut size={18} />
-          {!collapsed && <span>Logout</span>}
-        </button>
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-white/10 transition"
+      >
+        <LogOut size={18} />
+        {!collapsed && <span>Logout</span>}
+      </button>
       </div>
     </aside>
   );
@@ -247,6 +266,23 @@ function MobileSidebar({
 
   const toggleExpand = (name: string) =>
     setExpanded(expanded === name ? null : name);
+  
+  const router = useRouter();
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("verifyToken");
+    toast.success("Berhasil logout!");
+
+    setTimeout(() => {
+      window.location.reload();
+      router.push("/");
+    }, 1500);
+  };
+  
 
   return (
     <AnimatePresence>
@@ -349,10 +385,13 @@ function MobileSidebar({
 
             {/* Logout */}
             <div className="px-2 py-4 border-t border-white/10">
-              <button className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-white/10 transition">
-                <LogOut size={18} />
-                <span>Logout</span>
-              </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-white/10 transition"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
             </div>
           </motion.div>
 
@@ -376,8 +415,8 @@ export default function TenantDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false); // mobile
-  const [collapsed, setCollapsed] = useState(false); // desktop
+  const [open, setOpen] = useState(false); 
+  const [collapsed, setCollapsed] = useState(false); 
 
   return (
     <ProtectedPage role="TENANT">

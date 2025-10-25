@@ -15,11 +15,16 @@ export default function ForgotPasswordClient() {
     setServerMessage(null);
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const res = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        }/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        }
+      );
 
       const data = await res.json();
 
@@ -29,7 +34,7 @@ export default function ForgotPasswordClient() {
       }
 
       setServerMessage(
-        "Instruksi reset password telah dikirim ke email Anda."
+        "Link reset password telah dikirim ke email Anda. Silakan cek email Anda."
       );
     } catch {
       setServerMessage("Terjadi kesalahan jaringan. Coba lagi.");
@@ -41,7 +46,9 @@ export default function ForgotPasswordClient() {
       <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 sm:p-8">
         {/* Heading */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-semibold text-[#2f567a]">Lupa Password</h1>
+          <h1 className="text-2xl font-semibold text-[#2f567a]">
+            Lupa Password
+          </h1>
           <p className="text-sm text-gray-500 mt-2">
             Masukkan email Anda untuk menerima link reset password.
           </p>

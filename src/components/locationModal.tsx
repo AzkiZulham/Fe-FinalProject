@@ -9,7 +9,11 @@ type LocationData = {
   city: string;
 };
 
-export default function LocationModal({ onLocationDetected }: { onLocationDetected: (location: LocationData) => void }) {
+export default function LocationModal({
+  onLocationDetected,
+}: {
+  onLocationDetected: (location: LocationData) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,7 +33,7 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
 
           try {
             const res = await fetch(
-              `/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
+              `http://localhost:8000/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
             );
             const data = await res.json();
 
@@ -39,7 +43,6 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
                 lng: longitude,
                 city: data.city,
               };
-              console.log("Lokasi terdeteksi via GPS:", location);
               onLocationDetected(location);
             } else {
               await tryIPFallback();
@@ -59,8 +62,8 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
         },
         {
           enableHighAccuracy: true,
-          timeout: 20000, 
-          maximumAge: 300000, 
+          timeout: 20000,
+          maximumAge: 300000,
         }
       );
     } else {
@@ -70,8 +73,7 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
 
   const tryIPFallback = async () => {
     try {
-      console.log("Trying IP-based geolocation fallback...");
-      const ipRes = await fetch('https://ipapi.co/json/');
+      const ipRes = await fetch("https://ipapi.co/json/");
       const ipData = await ipRes.json();
 
       if (ipData.latitude && ipData.longitude && ipData.city) {
@@ -80,16 +82,13 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
           lng: parseFloat(ipData.longitude.toFixed(6)),
           city: ipData.city,
         };
-        console.log("Lokasi terdeteksi via IP:", location);
         onLocationDetected(location);
       } else {
-        
         const fallbackLocation: LocationData = {
           lat: -6.2,
           lng: 106.8,
           city: "Jakarta",
         };
-        console.log("Final fallback location:", fallbackLocation);
         onLocationDetected(fallbackLocation);
       }
     } catch (error) {
@@ -99,7 +98,6 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
         lng: 106.8,
         city: "Jakarta",
       };
-      console.log("Final fallback location (IP error):", fallbackLocation);
       onLocationDetected(fallbackLocation);
     }
 
@@ -127,7 +125,8 @@ export default function LocationModal({ onLocationDetected }: { onLocationDetect
         <MapPin className="w-10 h-10 mx-auto text-blue-600 mb-4" />
         <h2 className="text-lg font-semibold mb-2">Izinkan Akses Lokasi?</h2>
         <p className="text-gray-500 mb-6 text-sm">
-          Kami dapat menampilkan properti terdekat dengan lokasi Anda untuk pengalaman yang lebih baik.
+          Kami dapat menampilkan properti terdekat dengan lokasi Anda untuk
+          pengalaman yang lebih baik.
         </p>
         <div className="flex justify-center gap-4">
           <button

@@ -35,11 +35,14 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-  
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       if (!res.ok) return;
       const data = await res.json();
       const normalizedUser: UserData = {
@@ -49,7 +52,7 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
         isEmailVerified:
           data.user.isEmailVerified ||
           data.user.emailVerified ||
-          data.user.isMailVerified ||  
+          data.user.isMailVerified ||
           false,
         verified: data.user.verified || false,
         phoneNumber: data.user.phoneNumber || "",
@@ -58,11 +61,11 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
         isEmailUpdated: data.user.isEmailUpdated || false,
       };
       setUserData(normalizedUser);
-      } catch (err) {
+    } catch (err) {
       console.error(err);
-      }
+    }
   }, [setUserData]);
-  
+
   // ======================
   // Cek hasil verifikasi dari redirect backend
   // ======================
@@ -102,7 +105,8 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
       return toast.error("Ukuran maksimal 1MB");
     }
 
-    // Preview sementara dengan fade-in
+    const originalAvatar = userData.avatar;
+
     const previewUrl = URL.createObjectURL(file);
     setUserData((prev) => ({ ...prev, avatar: previewUrl }));
 
@@ -126,20 +130,18 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
       if (!res.ok) throw new Error("Gagal upload avatar");
 
       const data = await res.json();
-      if (!data.url) throw new Error("URL avatar tidak ditemukan");
+      if (!data.avatar) throw new Error("URL avatar tidak ditemukan");
 
-      // Update dengan URL final dari server
-      setUserData((prev) => ({ ...prev, avatar: data.url }));
+      setUserData((prev) => ({ ...prev, avatar: data.avatar }));
 
-      // Revoke preview URL untuk mencegah memory leak
       URL.revokeObjectURL(previewUrl);
 
-      // Tampilkan modal sukses upload avatar
       setShowAvatarModal(true);
       toast.success("Foto profil berhasil diperbarui! 📸");
     } catch (err: unknown) {
       toast.error((err as Error).message || "Gagal upload foto");
-      setUserData((prev) => ({ ...prev, avatar: prev.avatar }));
+      setUserData((prev) => ({ ...prev, avatar: originalAvatar }));
+      URL.revokeObjectURL(previewUrl);
     } finally {
       setIsUploading(false);
     }
@@ -228,9 +230,14 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
       <div className="relative group">
         <Avatar className="w-32 h-32 border-4 border-white shadow-2xl transition-all duration-300 group-hover:shadow-xl">
           {userData.avatar ? (
-            <AvatarImage 
-              src={userData.avatar} 
-              alt="User Avatar" 
+            <AvatarImage
+              key={userData.avatar}
+              src={
+                userData.avatar.startsWith("http")
+                  ? userData.avatar
+                  : `${process.env.NEXT_PUBLIC_API_URL}${userData.avatar}`
+              }
+              alt="User Avatar"
               className="object-cover"
             />
           ) : (
@@ -239,7 +246,6 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
             </AvatarFallback>
           )}
         </Avatar>
-        
         {/* Upload Button */}
         <label
           htmlFor="avatar-upload"
@@ -274,12 +280,16 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
         {userData.isEmailVerified ? (
           <>
             <CheckCircle2 className="w-4 h-4 text-green-500" />
-            <span className="text-sm text-green-600 font-medium">Email Terverifikasi</span>
+            <span className="text-sm text-green-600 font-medium">
+              Email Terverifikasi
+            </span>
           </>
         ) : (
           <>
             <XCircle className="w-4 h-4 text-orange-500" />
-            <span className="text-sm text-orange-600 font-medium">Email Belum Terverifikasi</span>
+            <span className="text-sm text-orange-600 font-medium">
+              Email Belum Terverifikasi
+            </span>
           </>
         )}
       </div>
@@ -308,9 +318,9 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
         </Button>
       )}
 
-      {/* ====================== */}
+      {/* ======================================= */}
       {/* MODAL KONFIRMASI UPLOAD AVATAR BERHASIL */}
-      {/* ====================== */}
+      {/* ======================================= */}
       <Dialog open={showAvatarModal} onOpenChange={setShowAvatarModal}>
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
@@ -360,7 +370,8 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
               <strong className="text-[#2f567a]">{userData.email}</strong>
               <br />
               <span className="text-sm mt-2 block">
-                Silakan cek kotak masuk atau folder spam Anda untuk menyelesaikan proses verifikasi.
+                Silakan cek kotak masuk atau folder spam Anda untuk
+                menyelesaikan proses verifikasi.
               </span>
             </DialogDescription>
           </DialogHeader>
