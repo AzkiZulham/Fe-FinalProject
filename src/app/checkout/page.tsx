@@ -64,15 +64,9 @@ export default function CheckoutPage() {
     }
   };
 
-  useEffect(() => {
-    console.log("auth user =>", user);
-  }, [user]);
+  useEffect(() => {}, [user]);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
     fetchDetail();
   }, [user, transactionId]);
 
