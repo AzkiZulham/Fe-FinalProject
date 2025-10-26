@@ -64,8 +64,6 @@ export default function CheckoutPage() {
     }
   };
 
-  useEffect(() => {}, [user]);
-
   useEffect(() => {
     fetchDetail();
   }, [user, transactionId]);
