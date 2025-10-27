@@ -10,6 +10,8 @@ import {
   DollarSign,
   Calendar,
   Clock,
+  FolderOpen,
+  User,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
 
@@ -18,7 +20,7 @@ export default function DashboardPage() {
     totalProperties: 0,
     totalRooms: 0,
     pendingPayments: 0,
-    monthlyRevenue: 0,
+    categoriesProperty: 0,
     totalBookings: 0,
     pendingBookings: 0,
   });
@@ -37,12 +39,11 @@ export default function DashboardPage() {
         setStats(res.data);
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
-        // Fallback data
         setStats({
           totalProperties: 8,
           totalRooms: 32,
           pendingPayments: 3,
-          monthlyRevenue: 42500000,
+          categoriesProperty: 5,
           totalBookings: 156,
           pendingBookings: 5,
         });
@@ -53,16 +54,6 @@ export default function DashboardPage() {
 
     if (token) fetchDashboardData();
   }, [API_URL, token]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    })
-      .format(amount)
-      .replace("IDR", "Rp");
-  };
 
   if (isLoading) {
     return (
@@ -125,18 +116,18 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Monthly Revenue */}
+        {/* Categories Property */}
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center mb-4">
             <div className="p-2 bg-orange-100 rounded-lg mr-4">
-              <DollarSign className="h-6 w-6 text-orange-600" />
+              <FolderOpen className="h-6 w-6 text-orange-600" />
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-600">
-                Pendapatan Bulan Ini
+                Kategori Properti
               </h3>
-              <p className="text-xl font-bold text-gray-800">
-                {formatCurrency(stats.monthlyRevenue)}
+              <p className="text-2xl font-bold text-gray-800">
+                {stats.categoriesProperty}
               </p>
             </div>
           </div>
@@ -197,7 +188,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Aksi Cepat</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/tenant/dashboard/properties/add" className="p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-center block">
             <Building2 className="h-6 w-6 text-blue-600 mx-auto mb-2" />
             <span className="text-sm font-medium text-gray-700">Tambah Properti & Room</span>
@@ -214,6 +205,13 @@ export default function DashboardPage() {
           >
             <DollarSign className="h-6 w-6 text-orange-600 mx-auto mb-2" />
             <span className="text-sm font-medium text-gray-700">Laporan</span>
+          </Link>
+          <Link
+            href="/tenant/dashboard/settings/profile"
+            className="p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors text-center block"
+          >
+            <User className="h-6 w-6 text-green-600 mx-auto mb-2" />
+            <span className="text-sm font-medium text-gray-700">Profile</span>
           </Link>
         </div>
       </div>

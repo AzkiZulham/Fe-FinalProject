@@ -23,6 +23,7 @@ type RoomType = {
     endDate: string;
     percentage?: number | null;
     nominal?: number | null;
+    isAvailable?: boolean;
   }[];
 };
 
@@ -36,7 +37,7 @@ type Property = {
   name: string;
   address: string;
   description?: string;
-  picture?: string;
+  picture?: string | null;
   categoryId?: number;
   noRekening?: string;
   destinationBank?: string;
@@ -48,7 +49,18 @@ type PropertyResponse = {
   reviews: any[];
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+const safeSrc = (src: string | File | null) => {
+  if (!src) return null;
+  if (src instanceof File) return URL.createObjectURL(src);
+  if (typeof src === 'string') {
+    if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:')) return src;
+    if (src.startsWith('/')) return `${API_URL}${src}`;
+    return null;
+  }
+  return null;
+};
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -115,20 +127,21 @@ export default function EditPropertyPage() {
             headers: { Authorization: token ? `Bearer ${token}` : "" },
           }),
         ]);
-        // Ensure all descriptions are strings, not null
+
         const processedProperty = {
           ...propertyRes.data.property,
           description: propertyRes.data.property.description || "",
+          picture: propertyRes.data.property.picture && propertyRes.data.property.picture !== "null" && propertyRes.data.property.picture.trim() !== "" && (propertyRes.data.property.picture.startsWith('http') || propertyRes.data.property.picture.startsWith('/')) ? propertyRes.data.property.picture : null,
           roomTypes: propertyRes.data.property.roomTypes.map((room: any) => ({
             ...room,
             description: room.description || "",
-            roomImg: Array.isArray(room.roomImg) ? room.roomImg : room.roomImg ? [room.roomImg] : [],
+            roomImg: (Array.isArray(room.roomImg) ? room.roomImg : (room.roomImg ? [room.roomImg] : [])).filter((img: any) => img && img !== "null" && typeof img === 'string' && img.trim() !== "" && (img.startsWith('http') || img.startsWith('/'))),
           })),
         };
 
         setProperty(processedProperty);
         setCategories(categoryRes.data);
-        setPreview(processedProperty.picture || null);
+        setPreview(processedProperty.picture && processedProperty.picture !== "null" ? processedProperty.picture : null);
         setDescriptionLength(processedProperty.description?.length || 0);
       } catch (err) {
         console.error(err);
@@ -263,10 +276,8 @@ export default function EditPropertyPage() {
                   formData.append("noRekening", values.noRekening || "");
                   formData.append("destinationBank", values.destinationBank || "");
 
-                  // Process roomTypes to handle images separately
                   const roomTypesForJson = values.roomTypes.map((room, index) => {
                     const { roomImg, ...rest } = room;
-                    // Append new File images to formData
                     if (roomImg && Array.isArray(roomImg)) {
                       roomImg.forEach((img) => {
                         if (img instanceof File) {
@@ -274,7 +285,6 @@ export default function EditPropertyPage() {
                         }
                       });
                     }
-                    // Keep only string images (existing) for JSON
                     return {
                       ...rest,
                       roomImg: roomImg.filter(img => typeof img === 'string'),
@@ -454,7 +464,7 @@ export default function EditPropertyPage() {
                         </label>
                         
                         {/* Preview */}
-                        {preview && (
+                        {preview && safeSrc(preview) && (
                           <div className="mb-3 sm:mb-4">
                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
                             <div className="relative w-full h-40 sm:h-48 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200">
@@ -463,8 +473,7 @@ export default function EditPropertyPage() {
                                 alt="Preview properti"
                                 fill
                                 className="object-cover"
-                                loader={({ src }) => src} 
-                                unoptimized
+                                unoptimized={preview.startsWith('blob:')}
                                 sizes="(max-width: 768px) 100vw, 50vw"
                               />
                               <button
@@ -666,27 +675,68 @@ export default function EditPropertyPage() {
                                 <div>
                                   <label className="block text-sm font-semibold text-gray-700 mb-2">Gambar Kamar</label>
 
-                                  {/* Existing Images Preview */}
-                                  {values.roomTypes[index].roomImg && Array.isArray(values.roomTypes[index].roomImg) && values.roomTypes[index].roomImg.length > 0 && (
-                                    <div className="mb-3">
-                                      <p className="text-sm text-gray-600 mb-2">Gambar yang sudah ada:</p>
+                                  {/* Upload Gambar */}
+                                  <div className="space-y-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                      <label className="cursor-pointer">
+                                        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 text-center text-sm">
+                                          <svg className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                          </svg>
+                                          Pilih Gambar
+                                        </div>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          multiple
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const files = Array.from(e.target.files || []);
+                                            const validFiles = files.filter(file => {
+                                              if (file.size > 5 * 1024 * 1024) {
+                                                alert(`File ${file.name} terlalu besar. Maksimal 5MB.`);
+                                                return false;
+                                              }
+                                              return true;
+                                            });
+
+                                            const currentImages = values.roomTypes[index].roomImg || [];
+                                            const allImages = [...currentImages, ...validFiles];
+
+                                            if (allImages.length > 10) {
+                                              alert("Maksimal 10 gambar per kamar.");
+                                              return;
+                                            }
+
+                                            setFieldValue(`roomTypes.${index}.roomImg`, allImages);
+                                          }}
+                                        />
+                                      </label>
+                                      <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+                                        <p>PNG, JPG, JPEG (Maks. 5MB per gambar)</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Images Preview */}
+                                  {values.roomTypes[index].roomImg && values.roomTypes[index].roomImg.length > 0 && (
+                                    <div className="mt-3">
+                                      <p className="text-sm text-gray-600 mb-2">Preview gambar:</p>
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {values.roomTypes[index].roomImg.filter((img) => typeof img === 'string').map((img: string, imgIndex: number) => (
+                                        {values.roomTypes[index].roomImg.map((img: any, imgIndex: number) => (
                                           <div key={imgIndex} className="relative">
                                             <Image
-                                              src={img}
+                                              src={img instanceof File ? URL.createObjectURL(img) : (typeof img === "string" ? (img.startsWith("http") ? img : `${API_URL}${img}`) : "")}
                                               alt={`Room image ${imgIndex + 1}`}
                                               width={80}
                                               height={80}
                                               className="w-full h-20 object-cover rounded-lg border"
-                                              loader={({ src }) => src}
                                               unoptimized
                                             />
                                             <button
                                               type="button"
                                               onClick={() => {
-                                                const currentImages = values.roomTypes[index].roomImg || [];
-                                                const newImages = currentImages.filter((item: any) => item !== img);
+                                                const newImages = values.roomTypes[index].roomImg.filter((_, i: number) => i !== imgIndex);
                                                 setFieldValue(`roomTypes.${index}.roomImg`, newImages);
                                               }}
                                               className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
@@ -699,109 +749,37 @@ export default function EditPropertyPage() {
                                     </div>
                                   )}
 
-                                  {/* New Images Upload */}
-                                  <div className="space-y-3">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                      Upload Gambar Baru
-                                    </label>
-                                    <div className="space-y-3">
-                                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                        <label className="cursor-pointer">
-                                          <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 text-center text-sm">
-                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            Pilih Gambar
-                                          </div>
-                                          <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            className="hidden"
-                                            onChange={(e) => {
-                                              const files = Array.from(e.target.files || []);
-                                              const validFiles = files.filter(file => {
-                                                if (file.size > 5 * 1024 * 1024) {
-                                                  alert(`File ${file.name} terlalu besar. Maksimal 5MB.`);
-                                                  return false;
-                                                }
-                                                return true;
-                                              });
-
-                                              const currentImages = values.roomTypes[index].roomImg || [];
-                                              const allImages = [...currentImages, ...validFiles];
-
-                                              if (allImages.length > 10) {
-                                                alert("Maksimal 10 gambar per kamar.");
-                                                return;
-                                              }
-
-                                              setFieldValue(`roomTypes.${index}.roomImg`, allImages);
-                                            }}
-                                          />
-                                        </label>
-                                        <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-                                          <p>PNG, JPG, JPEG (Maks. 5MB per gambar)</p>
-                                          <p>Maksimal 10 gambar total</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* New Images Preview */}
-                                  {values.roomTypes[index].roomImg && Array.isArray(values.roomTypes[index].roomImg) && values.roomTypes[index].roomImg.length > 0 && (
-                                    <div className="mt-3">
-                                      <p className="text-sm text-gray-600 mb-2">Preview gambar baru:</p>
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {values.roomTypes[index].roomImg.map((img: any, imgIndex: number) => {
-                                          if (typeof img === 'string') return null; // Skip existing images
-                                          return (
-                                            <div key={`new-${imgIndex}`} className="relative">
-                                              <Image
-                                                src={URL.createObjectURL(img)}
-                                                alt={`New room image ${imgIndex + 1}`}
-                                                width={80}
-                                                height={80}
-                                                className="w-full h-20 object-cover rounded-lg border"
-                                                loader={({ src }) => src}
-                                                unoptimized
-                                              />
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  const currentImages = values.roomTypes[index].roomImg || [];
-                                                  const newImages = currentImages.filter((_: any, i: number) => i !== imgIndex);
-                                                  setFieldValue(`roomTypes.${index}.roomImg`, newImages);
-                                                }}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                                              >
-                                                ×
-                                              </button>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
 
-                                {/* Peak Seasons (readonly) */}
+                                {/* Peak Seasons & Availability (readonly) */}
                                 {room.peakSeasons && room.peakSeasons.length > 0 && (
                                   <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
                                     <div className="flex items-center mb-2">
                                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                       </svg>
-                                      <p className="text-sm font-semibold text-blue-800">Musim Ramai (Peak Seasons)</p>
+                                      <p className="text-sm font-semibold text-blue-800">Peak Season & Availability</p>
                                     </div>
+                                    <p className="text-xs text-blue-700 mb-3">
+                                      Selama periode peak season, kamar tersedia dengan harga yang ditingkatkan.
+                                    </p>
                                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1 sm:space-y-2">
-                                      {room.peakSeasons.map((p: { id: number; startDate: string; endDate: string; percentage?: number | null; nominal?: number | null; }, i: number) => (
-                                        <li key={i} className="flex items-center">
-                                          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full mr-2"></span>
-                                          {new Date(p.startDate).toLocaleDateString('id-ID')} - {new Date(p.endDate).toLocaleDateString('id-ID')}{" "}
-                                          ({p.percentage ? `+${p.percentage}%` : p.nominal ? `+Rp${p.nominal.toLocaleString('id-ID')}` : ""})
-                                        </li>
-                                      ))}
+                                      {room.peakSeasons.map((p: { id: number; startDate: string; endDate: string; percentage?: number | null; nominal?: number | null; isAvailable?: boolean; }, i: number) => {
+                                        const isUnavailable = p.isAvailable === false;
+                                        const isPeak = !isUnavailable && (p.percentage || p.nominal);
+                                        const statusText = isUnavailable ? 'Tidak Tersedia (Unavailable)' : isPeak ? 'Peak Season' : 'Tersedia (Available)';
+                                        const dotColor = isUnavailable ? 'bg-red-500' : isPeak ? 'bg-yellow-500' : 'bg-green-500';
+                                        return (
+                                          <li key={i} className="flex items-start">
+                                            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-2 mt-0.5 flex-shrink-0 ${dotColor}`}></span>
+                                            <div>
+                                              <span className="font-medium">{statusText}</span><br />
+                                              {new Date(p.startDate).toLocaleDateString('id-ID')} - {new Date(p.endDate).toLocaleDateString('id-ID')}{" "}
+                                              {isPeak && (p.percentage ? `(+${p.percentage}%)` : p.nominal ? `(+Rp${p.nominal.toLocaleString('id-ID')})` : "")}
+                                            </div>
+                                          </li>
+                                        );
+                                      })}
                                     </ul>
                                   </div>
                                 )}

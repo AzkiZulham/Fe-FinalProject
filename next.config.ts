@@ -18,6 +18,7 @@ const nextConfig = {
         port: "8000",
       },
     ],
+    domains: ['localhost'],
   },
   async rewrites() {
     return [

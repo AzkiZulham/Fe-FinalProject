@@ -1,8 +1,9 @@
 export type PeakSeason = {
-  startDate: string; 
-  endDate: string;   
+  startDate: string;
+  endDate: string;
   nominal?: number | null;
   percentage?: number | null;
+  isAvailable?: boolean;
 };
 
 export interface RoomType {
@@ -37,7 +38,7 @@ export interface Review {
   id: number;
   userName: string;
   rating: number;
-  date: string; //
+  date: string; 
   comment?: string;
   likes?: number;
   verified?: boolean;

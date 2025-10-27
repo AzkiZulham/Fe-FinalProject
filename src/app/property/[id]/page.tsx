@@ -54,7 +54,7 @@ export default function PropertyDetailPage(): React.ReactElement {
                 room;
               return {
                 ...room,
-                images: room.roomImg ? [room.roomImg] : [],
+                images: Array.isArray(room.roomImg) ? room.roomImg : [],
                 quota: room.quota,
                 peakSeasons: Array.isArray(roomWithPeak.peakSeasons)
                   ? roomWithPeak.peakSeasons.map((season) => ({
@@ -62,6 +62,7 @@ export default function PropertyDetailPage(): React.ReactElement {
                       endDate: season.endDate,
                       nominal: season.nominal,
                       percentage: season.percentage,
+                      isAvailable: season.isAvailable,
                     }))
                   : [],
               };

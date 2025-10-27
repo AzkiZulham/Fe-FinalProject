@@ -7,26 +7,26 @@ import { ChevronDown, MapPin, Calendar, Users, Search } from "lucide-react";
 type CityOption = { value: string; label: string; lat: number; lng: number };
 
 const cityOptions: CityOption[] = [
-  { value: "jakarta", label: "Jakarta", lat: -6.2, lng: 106.8 },
-  { value: "bandung", label: "Bandung", lat: -6.9, lng: 107.6 },
-  { value: "bali", label: "Bali", lat: -8.65, lng: 115.2 },
-  { value: "surabaya", label: "Surabaya", lat: -7.25, lng: 112.7 },
-  { value: "yogyakarta", label: "Yogyakarta", lat: -7.8, lng: 110.36 },
-  { value: "bogor", label: "Bogor", lat: -6.6, lng: 106.8 },
-  { value: "semarang", label: "Semarang", lat: -6.97, lng: 110.42 },
-  { value: "medan", label: "Medan", lat: 3.59, lng: 98.67 },
-  { value: "makassar", label: "Makassar", lat: -5.14, lng: 119.42 },
-  { value: "palembang", label: "Palembang", lat: -2.99, lng: 104.76 },
-  { value: "depok", label: "Depok", lat: -6.4, lng: 106.82 },
-  { value: "tangerang", label: "Tangerang", lat: -6.18, lng: 106.63 },
-  { value: "bekasi", label: "Bekasi", lat: -6.24, lng: 106.99 },
-  { value: "malang", label: "Malang", lat: -7.98, lng: 112.63 },
-  { value: "solo", label: "Solo", lat: -7.57, lng: 110.83 },
-  { value: "padang", label: "Padang", lat: -0.95, lng: 100.35 },
-  { value: "bandar lampung", label: "Bandar Lampung", lat: -5.45, lng: 105.27 },
-  { value: "samarinda", label: "Samarinda", lat: -0.5, lng: 117.15 },
-  { value: "pekanbaru", label: "Pekanbaru", lat: 0.51, lng: 101.45 },
-  { value: "denpasar", label: "Denpasar", lat: -8.65, lng: 115.22 },
+  { value: "bali", label: "Bali", lat: -8.4095, lng: 115.1889 },
+  { value: "bandar lampung", label: "Bandar Lampung", lat: -5.4500, lng: 105.2667 },
+  { value: "bandung", label: "Bandung", lat: -6.9175, lng: 107.6191 },
+  { value: "bekasi", label: "Bekasi", lat: -6.2383, lng: 106.9756 },
+  { value: "bogor", label: "Bogor", lat: -6.5971, lng: 106.8060 },
+  { value: "denpasar", label: "Denpasar", lat: -8.6705, lng: 115.2126 },
+  { value: "depok", label: "Depok", lat: -6.4025, lng: 106.7942 },
+  { value: "jakarta", label: "Jakarta", lat: -6.2088, lng: 106.8456 },
+  { value: "makassar", label: "Makassar", lat: -5.1477, lng: 119.4327 },
+  { value: "malang", label: "Malang", lat: -7.9666, lng: 112.6326 },
+  { value: "medan", label: "Medan", lat: 3.5952, lng: 98.6722 },
+  { value: "padang", label: "Padang", lat: -0.9492, lng: 100.3543 },
+  { value: "palembang", label: "Palembang", lat: -2.9761, lng: 104.7759 },
+  { value: "pekanbaru", label: "Pekanbaru", lat: 0.5071, lng: 101.4478 },
+  { value: "samarinda", label: "Samarinda", lat: -0.5022, lng: 117.1536 },
+  { value: "semarang", label: "Semarang", lat: -6.9667, lng: 110.4167 },
+  { value: "solo", label: "Solo", lat: -7.5755, lng: 110.8243 },
+  { value: "surabaya", label: "Surabaya", lat: -7.2504, lng: 112.7688 },
+  { value: "tangerang", label: "Tangerang", lat: -6.1783, lng: 106.6319 },
+  { value: "yogyakarta", label: "Yogyakarta", lat: -7.7956, lng: 110.3695 }, 
 ];
 
 type BookingFilterProps = {
@@ -40,6 +40,7 @@ type BookingFilterProps = {
     childQty?: number;
     roomQty?: number;
   };
+  location?: LocationData | null;
 };
 
 type LocationData = {
@@ -52,6 +53,7 @@ export default function BookingFilter({
   noHeroMargin = false,
   onSearch,
   initialCriteria,
+  location,
 }: BookingFilterProps) {
   const [city, setCity] = useState<CityOption | null>(
     initialCriteria?.city
@@ -66,27 +68,42 @@ export default function BookingFilter({
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const storedLocation = localStorage.getItem("userLocation");
-    if (storedLocation) {
-      try {
-        const location: LocationData = JSON.parse(storedLocation);
-        const closestCity = cityOptions.reduce((closest, current) => {
-          const closestDistance = Math.sqrt(
-            Math.pow(closest.lat - location.lat, 2) +
-              Math.pow(closest.lng - location.lng, 2)
-          );
-          const currentDistance = Math.sqrt(
-            Math.pow(current.lat - location.lat, 2) +
-              Math.pow(current.lng - location.lng, 2)
-          );
-          return currentDistance < closestDistance ? current : closest;
-        });
-        setCity(closestCity);
-      } catch (error) {
-        console.error("Error parsing stored location:", error);
+    if (location) {
+      const closestCity = cityOptions.reduce((closest, current) => {
+        const closestDistance = Math.sqrt(
+          Math.pow(closest.lat - location.lat, 2) +
+            Math.pow(closest.lng - location.lng, 2)
+        );
+        const currentDistance = Math.sqrt(
+          Math.pow(current.lat - location.lat, 2) +
+            Math.pow(current.lng - location.lng, 2)
+        );
+        return currentDistance < closestDistance ? current : closest;
+      });
+      setCity(closestCity);
+    } else {
+      const storedLocation = localStorage.getItem("userLocation");
+      if (storedLocation) {
+        try {
+          const parsedLocation: LocationData = JSON.parse(storedLocation);
+          const closestCity = cityOptions.reduce((closest, current) => {
+            const closestDistance = Math.sqrt(
+              Math.pow(closest.lat - parsedLocation.lat, 2) +
+                Math.pow(closest.lng - parsedLocation.lng, 2)
+            );
+            const currentDistance = Math.sqrt(
+              Math.pow(current.lat - parsedLocation.lat, 2) +
+                Math.pow(current.lng - parsedLocation.lng, 2)
+            );
+            return currentDistance < closestDistance ? current : closest;
+          });
+          setCity(closestCity);
+        } catch (error) {
+          console.error("Error parsing stored location:", error);
+        }
       }
     }
-  }, []);
+  }, [location]);
 
   const handleSearch = () => {
     if (onSearch) {

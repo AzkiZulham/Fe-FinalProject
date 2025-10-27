@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 u.verified || u.isEmailVerified || u.emailVerified || false,
               email: u.email || decoded.email,
               username: u.userName || decoded.username || "",
-              avatar: u.profileImg || "/default-avatar.png",
+              avatar: u.avatar || u.profileImg || "/default-avatar.png",
               phoneNumber: u.phoneNumber || "",
               birthDate: u.birthDate || "",
               gender: u.gender || "",
