@@ -6,6 +6,7 @@ import { axios } from "@/lib/axios";
 import { useAuth } from "@/context/authContext";
 import StatusBadge from "@/components/statusBadge";
 import ProtectedPage from "@/components/protectedPage";
+import { payWithMidtrans } from "@/components/orders/midtransPayment/payWithMidtrans";
 
 type OrderDetail = {
   id: number;
@@ -68,25 +69,8 @@ export default function CheckoutPage() {
     fetchDetail();
   }, [user, transactionId]);
 
-  const payWithMidtrans = async () => {
-    try {
-      const resp = await axios.post<{
-        token: string;
-        redirect_url: string;
-        orderId: string;
-      }>("/api/payment/midtrans/create", { transactionId });
-      if (resp.data?.redirect_url) {
-        window.location.href = resp.data.redirect_url;
-      } else {
-        alert("Gagal membuka halaman pembayaran Midtrans.");
-      }
-    } catch (e: any) {
-      alert(
-        e?.response?.data?.error ||
-          e.message ||
-          "Gagal membuat pembayaran Midtrans"
-      );
-    }
+  const payWithMidtransClick = async () => {
+    await payWithMidtrans(transactionId);
   };
 
   if (!transactionId) {
@@ -171,15 +155,15 @@ export default function CheckoutPage() {
                     router.push(`/checkout/transfer?transactionId=${order.id}`)
                   }
                   disabled={order.status !== "WAITING_FOR_PAYMENT"}
-                  className="w-full rounded-md border px-4 py-2 text-left hover:bg-gray-50 disabled:opacity-50"
+                  className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   TRANSFER Bank (Upload Bukti)
                 </button>
 
                 <button
-                  onClick={payWithMidtrans}
+                  onClick={payWithMidtransClick}
                   disabled={order.status !== "WAITING_FOR_PAYMENT"}
-                  className="w-full rounded-md bg-black text-white px-4 py-2 hover:opacity-90 disabled:opacity-50"
+                  className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   Bayar via MIDTRANS
                 </button>

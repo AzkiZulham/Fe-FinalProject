@@ -6,11 +6,14 @@ import { UserOrderDetail, UserOrderDetailResponse } from "@/lib/orders/types";
 import StatusBadge from "../../statusBadge";
 import ReviewSection from "../../orders/review/reviewFormik";
 import UploadPaymentProofFormik from "../../orders/uploadPayment/uploadPayment";
+import { payWithMidtrans } from "@/components/orders/midtransPayment/payWithMidtrans";
 
 export default function OrderDetailBody({ id }: { id: number }) {
   const [order, setOrder] = useState<UserOrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
   const fetchOne = async () => {
     setLoading(true);
@@ -31,6 +34,36 @@ export default function OrderDetailBody({ id }: { id: number }) {
     fetchOne();
   }, [id]);
 
+  useEffect(() => {
+    if (!order) return;
+    const m = order.payment?.method;
+    const s = order.payment?.paymentStatus;
+
+    if (m === "MIDTRANS") {
+      setSelectedMethod("MIDTRANS");
+      setShowUpload(false);
+    } else if (m === "TRANSFER" && s === "PENDING") {
+      setSelectedMethod("TRANSFER");
+      setShowUpload(true);
+    } else {
+      setSelectedMethod(null);
+      setShowUpload(false);
+    }
+  }, [order]);
+
+  const onMidtrans = async () => {
+    await payWithMidtrans(id);
+  };
+
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Disalin ke clipboard");
+    } catch {
+      alert("Gagal menyalin");
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (err) return <p className="text-rose-600">{err}</p>;
   if (!order) return null;
@@ -41,15 +74,6 @@ export default function OrderDetailBody({ id }: { id: number }) {
 
   const bank = order.roomType?.property?.destinationBank || "";
   const rek = order.roomType?.property?.noRekening || "";
-
-  const copy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Disalin ke clipboard");
-    } catch {
-      alert("Gagal menyalin");
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -94,7 +118,7 @@ export default function OrderDetailBody({ id }: { id: number }) {
               Bukti bayar: <span className="text-gray-600">sudah diunggah</span>
             </div>
           )}
-          {order.payment?.paymentUrl && (
+          {order.payment?.paymentUrl && order.status !== "CANCELLED" && (
             <a
               href={order.payment.paymentUrl}
               target="_blank"
@@ -104,47 +128,88 @@ export default function OrderDetailBody({ id }: { id: number }) {
               Buka Link Pembayaran
             </a>
           )}
+          {order.status === "CANCELLED" && order.payment?.paymentUrl && (
+            <p className="text-xs text-gray-400">
+              Link pembayaran dinonaktifkan karena pesanan dibatalkan.
+            </p>
+          )}
         </div>
 
         {showActions && (
-          <div className="mt-2 rounded-md border p-3 bg-gray-50">
-            <div className="text-sm font-medium mb-2">Info Transfer Manual</div>
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <div>
-                <div className="text-gray-500">Bank Tujuan</div>
-                <div className="font-medium">{bank || "—"}</div>
-              </div>
-              {bank && (
+          <>
+            {!selectedMethod && (
+              <div className="space-y-2">
                 <button
-                  onClick={() => copy(bank)}
-                  className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                  onClick={() => {
+                    setSelectedMethod("TRANSFER");
+                    setShowUpload(true);
+                  }}
+                  className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Salin
+                  TRANSFER Bank (Upload Bukti)
                 </button>
-              )}
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-              <div>
-                <div className="text-gray-500">No. Rekening</div>
-                <div className="font-medium">{rek || "—"}</div>
-              </div>
-              {rek && (
                 <button
-                  onClick={() => copy(rek)}
-                  className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                  onClick={() => {
+                    setSelectedMethod("MIDTRANS");
+                    onMidtrans();
+                  }}
+                  className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Salin
+                  Bayar via MIDTRANS
                 </button>
-              )}
-            </div>
-          </div>
-        )}
+              </div>
+            )}
 
-        {showActions && (
-          <div className="flex flex-col gap-4 mt-3">
-            <UploadPaymentProofFormik orderId={order.id} onDone={fetchOne} />
-            <CancelOrderBtn orderId={order.id} onDone={fetchOne} />
-          </div>
+            {/* Jika user pilih upload bukti pembayaran */}
+            {selectedMethod === "TRANSFER" && showUpload && (
+              <div className="mt-3">
+                <UploadPaymentProofFormik
+                  orderId={order.id}
+                  onDone={fetchOne}
+                />
+              </div>
+            )}
+
+            {showUpload && (
+              <div className="mt-3 rounded-md border p-3 bg-gray-50">
+                <div className="text-sm font-medium mb-2">
+                  Info Transfer Manual
+                </div>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <div>
+                    <div className="text-gray-500">Bank Tujuan</div>
+                    <div className="font-medium">{bank || "—"}</div>
+                  </div>
+                  {bank && (
+                    <button
+                      onClick={() => copy(bank)}
+                      className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                    >
+                      Salin
+                    </button>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                  <div>
+                    <div className="text-gray-500">No. Rekening</div>
+                    <div className="font-medium">{rek || "—"}</div>
+                  </div>
+                  {rek && (
+                    <button
+                      onClick={() => copy(rek)}
+                      className="rounded-md border px-2 py-1 text-xs hover:bg-white"
+                    >
+                      Salin
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <CancelOrderBtn orderId={order.id} onDone={fetchOne} />
+            </div>
+          </>
         )}
       </div>
       <ReviewSection
