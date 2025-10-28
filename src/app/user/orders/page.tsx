@@ -33,6 +33,7 @@ export default function OrdersClient() {
   const q = sp.get("q") || "";
   const from = sp.get("from") || "";
   const to = sp.get("to") || "";
+  const order = sp.get("order") || "desc";
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -40,7 +41,15 @@ export default function OrdersClient() {
       const res = await axios.get<UserOrderResponse>(
         "/api/transaction/user/orders",
         {
-          params: { page, limit, status, dateFrom: from, dateTo: to, q },
+          params: {
+            page,
+            limit,
+            status,
+            dateFrom: from,
+            dateTo: to,
+            q,
+            order,
+          },
         }
       );
       setData(res.data);
@@ -49,7 +58,7 @@ export default function OrdersClient() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, status, q, from, to]);
+  }, [page, limit, status, q, from, to, order]);
 
   useEffect(() => {
     if (!initialized) return;
@@ -69,7 +78,7 @@ export default function OrdersClient() {
     const usp = new URLSearchParams(sp.toString());
     if (v) usp.set(k, v);
     else usp.delete(k);
-    usp.set("page", "1");
+    if (k !== "page") usp.set("page", "1");
     router.replace(`${pathname}?${usp.toString()}`);
   };
 
@@ -88,7 +97,7 @@ export default function OrdersClient() {
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
         <h1 className="text-2xl font-semibold">Pesanan Saya</h1>
 
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-6">
           <input
             placeholder="Cari (order no / properti)"
             defaultValue={q}
@@ -98,6 +107,15 @@ export default function OrdersClient() {
             }
             className="col-span-2 rounded-md border px-3 py-2"
           />
+          <select
+            className="rounded-md border px-3 py-2"
+            value={order}
+            onChange={(e) => setParam("order", e.target.value || undefined)}
+          >
+            <option value="desc">Terbaru</option>
+            <option value="asc">Terlama</option>
+          </select>
+
           <select
             className="rounded-md border px-3 py-2"
             value={status}

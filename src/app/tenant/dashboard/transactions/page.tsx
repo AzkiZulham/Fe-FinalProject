@@ -38,6 +38,7 @@ export default function TenantTransactionsPage() {
   const q = sp.get("q") || "";
   const from = sp.get("from") || "";
   const to = sp.get("to") || "";
+  const order = sp.get("order") || "desc";
 
   const setParam = (k: string, v?: string) => {
     const usp = new URLSearchParams(sp.toString());
@@ -60,6 +61,7 @@ export default function TenantTransactionsPage() {
             dateFrom: from,
             dateTo: to,
             q,
+            order,
           },
         }
       );
@@ -93,7 +95,7 @@ export default function TenantTransactionsPage() {
 
   useEffect(() => {
     fetchList();
-  }, [page, limit, status, q, from, to]);
+  }, [page, limit, status, q, from, to, order]);
 
   const last = useMemo(
     () => (data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1),
@@ -109,7 +111,7 @@ export default function TenantTransactionsPage() {
       <div className="mx-auto w-full max-w-screen-xl px-3 sm:px-4 lg:px-6 py-6 space-y-6">
         <h1 className="text-2xl font-semibold">Transaksi Tenant</h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 sm:gap-3">
           <input
             placeholder="Cari (Order ID)"
             defaultValue={q}
@@ -118,6 +120,14 @@ export default function TenantTransactionsPage() {
             }
             className="rounded-md border px-3 py-2 text-sm min-w-0"
           />
+          <select
+            className="rounded-md border px-3 py-2"
+            value={order}
+            onChange={(e) => setParam("order", e.target.value || undefined)}
+          >
+            <option value="desc">Terbaru</option>
+            <option value="asc">Terlama</option>
+          </select>
           <select
             className="rounded-md border px-3 py-2 text-sm min-w-0"
             value={status}
