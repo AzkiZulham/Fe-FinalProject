@@ -7,6 +7,7 @@ import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Image from "next/image";
 import ProtectedPage from "@/components/protectedPage";
+import Modal from "@/components/modal/modal";
 
 type RoomType = {
   id?: number;
@@ -110,6 +111,10 @@ export default function EditPropertyPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [removeOldPicture, setRemoveOldPicture] = useState(false);
   const [descriptionLength, setDescriptionLength] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -180,9 +185,7 @@ export default function EditPropertyPage() {
   };
 
   const handleCancel = () => {
-    if (window.confirm("Perubahan yang belum disimpan akan hilang. Lanjutkan?")) {
-      router.push("/tenant/dashboard/properties");
-    }
+    setShowCancelModal(true);
   };
 
   function handleDescriptionChange(e: React.ChangeEvent<HTMLTextAreaElement>, setFieldValue: any) {
@@ -302,11 +305,11 @@ export default function EditPropertyPage() {
                       "Content-Type": "multipart/form-data",
                     },
                   });
-                  alert("Properti berhasil diperbarui!");
-                  router.push("/tenant/dashboard/properties");
+                  setShowSuccessModal(true);
                 } catch (err) {
                   console.error(err);
-                  alert("Gagal update property. Silakan coba lagi.");
+                  setShowErrorModal(true);
+                  setErrorMessage("Gagal update property. Silakan coba lagi.");
                 } finally {
                   setSubmitting(false);
                 }
@@ -844,8 +847,132 @@ export default function EditPropertyPage() {
                     </button>
                   </div>
                 </Form>
+                
               )}
             </Formik>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+              <Modal
+                open={showSuccessModal}
+                onClose={() => {
+                  setShowSuccessModal(false);
+                  router.push("/tenant/dashboard/properties");
+                }}
+                title=""
+              >
+                <div className="flex flex-col items-center text-center p-4 sm:p-6">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                    <svg
+                      className="w-8 h-8 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Berhasil!</h2>
+                  <p className="text-green-600 text-sm mb-4">
+                    Properti berhasil diperbarui 🎉
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowSuccessModal(false);
+                      router.push("/tenant/dashboard/properties");
+                    }}
+                    className="mt-2 w-full sm:w-auto px-6 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition"
+                  >
+                    Kembali ke Daftar Properti
+                  </button>
+                </div>
+              </Modal>
+            )}
+
+            {/* Error Modal */}
+            {showErrorModal && (
+              <Modal
+                open={showErrorModal}
+                onClose={() => setShowErrorModal(false)}
+                title=""
+              >
+                <div className="flex flex-col items-center text-center p-4 sm:p-6">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+                    <svg
+                      className="w-8 h-8 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Gagal Memperbarui Properti</h2>
+                  <p className="text-red-600 text-sm mb-4">{errorMessage || "Terjadi kesalahan, silakan coba lagi."}</p>
+                  <button
+                    onClick={() => setShowErrorModal(false)}
+                    className="mt-2 w-full sm:w-auto px-6 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </Modal>
+            )}
+
+            {/* Cancel Modal */}
+            {showCancelModal && (
+              <Modal
+                open={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                title=""
+              >
+                <div className="flex flex-col items-center text-center p-4 sm:p-6">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
+                    <svg
+                      className="w-8 h-8 text-yellow-600"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Konfirmasi Batal</h2>
+                  <p className="text-gray-600 text-sm mb-6">
+                    Perubahan yang belum disimpan akan hilang. Apakah Anda yakin ingin kembali ke daftar properti?
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                    <button
+                      onClick={() => setShowCancelModal(false)}
+                      className="px-6 py-2 rounded-xl bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCancelModal(false);
+                        router.push("/tenant/dashboard/properties");
+                      }}
+                      className="px-6 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition"
+                    >
+                      Ya, Kembali
+                    </button>
+                  </div>
+                </div>
+              </Modal>
+            )}
+
           </div>
         </div>
       </div>

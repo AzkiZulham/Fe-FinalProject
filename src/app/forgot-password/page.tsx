@@ -34,7 +34,7 @@ export default function ForgotPasswordClient() {
       }
 
       setServerMessage(
-        "Link reset password telah dikirim ke email Anda. Silakan cek email Anda."
+        " Link reset password telah dikirim ke email Anda."
       );
     } catch {
       setServerMessage("Terjadi kesalahan jaringan. Coba lagi.");

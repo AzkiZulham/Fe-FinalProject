@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Formik, Form, Field, FieldArray } from "formik";
+import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protectedPage";
+import Modal from "@/components/modal/modal";
 
 interface PropertyCategory {
   id: number;
@@ -17,6 +18,10 @@ export default function AddPropertyPage() {
   const [categories, setCategories] = useState<PropertyCategory[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -128,11 +133,11 @@ export default function AddPropertyPage() {
                 },
               });
 
-              alert("Property created successfully!");
-              router.push("/tenant/dashboard/properties");
-            } catch (err) {
+              setShowSuccessModal(true);
+            } catch (err: any) {
               console.error(err);
-              alert("Failed to create property");
+              setErrorMessage(err.response?.data?.message || "Gagal menambahkan properti. Silakan coba lagi.");
+              setShowErrorModal(true);
             } finally {
               setSubmitting(false);
             }
@@ -165,6 +170,7 @@ export default function AddPropertyPage() {
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Contoh: Hotel Grand Paradise"
                     />
+                    <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* Category */}
@@ -184,6 +190,7 @@ export default function AddPropertyPage() {
                         </option>
                       ))}
                     </Field>
+                    <ErrorMessage name="categoryId" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* Address */}
@@ -196,6 +203,7 @@ export default function AddPropertyPage() {
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Alamat lengkap properti"
                     />
+                    <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* City */}
@@ -208,6 +216,7 @@ export default function AddPropertyPage() {
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Kota lokasi properti"
                     />
+                    <ErrorMessage name="city" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* Account Number */}
@@ -220,6 +229,7 @@ export default function AddPropertyPage() {
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Nomor rekening untuk pembayaran"
                     />
+                    <ErrorMessage name="noRekening" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* Bank Name */}
@@ -232,6 +242,7 @@ export default function AddPropertyPage() {
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                       placeholder="Nama bank tujuan"
                     />
+                    <ErrorMessage name="destinationBank" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
 
                   {/* Description */}
@@ -365,6 +376,7 @@ export default function AddPropertyPage() {
                                 className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                 placeholder="Contoh: Deluxe Room, Suite Executive"
                               />
+                              <ErrorMessage name={`roomTypes.${index}.roomName`} component="div" className="text-red-500 text-sm mt-1" />
                             </div>
 
                             {/* Price */}
@@ -382,6 +394,7 @@ export default function AddPropertyPage() {
                                   min="0"
                                 />
                               </div>
+                              <ErrorMessage name={`roomTypes.${index}.price`} component="div" className="text-red-500 text-sm mt-1" />
                             </div>
 
                             {/* Capacity Grid */}
@@ -396,6 +409,7 @@ export default function AddPropertyPage() {
                                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="1"
                                 />
+                                <ErrorMessage name={`roomTypes.${index}.quota`} component="div" className="text-red-500 text-sm mt-1" />
                               </div>
 
                               <div>
@@ -408,6 +422,7 @@ export default function AddPropertyPage() {
                                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="1"
                                 />
+                                <ErrorMessage name={`roomTypes.${index}.adultQty`} component="div" className="text-red-500 text-sm mt-1" />
                               </div>
 
                               <div>
@@ -418,6 +433,7 @@ export default function AddPropertyPage() {
                                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
                                   min="0"
                                 />
+                                <ErrorMessage name={`roomTypes.${index}.childQty`} component="div" className="text-red-500 text-sm mt-1" />
                               </div>
                             </div>
 
@@ -513,7 +529,7 @@ export default function AddPropertyPage() {
                                   <p className="text-sm text-gray-600 mb-2">Preview gambar baru:</p>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {values.roomTypes[index].roomImg.map((img: any, imgIndex: number) => {
-                                      if (typeof img === 'string') return null; // Skip existing images
+                                      if (typeof img === 'string') return null; 
                                       return (
                                         <div key={`new-${imgIndex}`} className="relative">
                                           <Image
@@ -590,7 +606,7 @@ export default function AddPropertyPage() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
                 <button
                   type="button"
-                  onClick={() => router.back()}
+                  onClick={() => setShowCancelModal(true)}
                   className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
                 >
                   Batal
@@ -613,6 +629,122 @@ export default function AddPropertyPage() {
             </Form>
           )}
         </Formik>
+
+        {/* ✅ Success Modal */}
+        <Modal
+          open={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            router.push("/tenant/dashboard/properties");
+          }}
+          title=""
+        >
+          <div className="flex flex-col items-center text-center p-4 sm:p-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Berhasil!</h2>
+            <p className="text-green-600 text-sm mb-4">
+              Properti berhasil ditambahkan ke daftar kamu 🎉
+            </p>
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push("/tenant/dashboard/properties");
+              }}
+              className="mt-2 w-full sm:w-auto px-6 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition"
+            >
+              Kembali ke Dashboard
+            </button>
+          </div>
+        </Modal>
+
+        {/* ❌ Error Modal */}
+        <Modal
+          open={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          title=""
+        >
+          <div className="flex flex-col items-center text-center p-4 sm:p-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+              <svg
+                className="w-8 h-8 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Gagal Menambahkan Properti</h2>
+            <p className="text-red-600 text-sm mb-4">{errorMessage || "Terjadi kesalahan, silakan coba lagi."}</p>
+            <button
+              onClick={() => setShowErrorModal(false)}
+              className="mt-2 w-full sm:w-auto px-6 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition"
+            >
+              Tutup
+            </button>
+          </div>
+        </Modal>
+
+        {/* ❓ Cancel Modal */}
+        <Modal
+          open={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          title=""
+        >
+          <div className="flex flex-col items-center text-center p-4 sm:p-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
+              <svg
+                className="w-8 h-8 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Konfirmasi Batal</h2>
+            <p className="text-gray-600 text-sm mb-4">
+              Apakah Anda yakin ingin membatalkan penambahan properti? Data yang sudah diisi akan hilang.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => {
+                  setShowCancelModal(false);
+                  router.back();
+                }}
+                className="flex-1 px-6 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition"
+              >
+                Ya, Batal
+              </button>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 px-6 py-2 rounded-xl bg-gray-600 text-white font-medium hover:bg-gray-700 transition"
+              >
+                Tidak
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
     </ProtectedPage>

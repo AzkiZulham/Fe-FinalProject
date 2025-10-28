@@ -12,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   DollarSign,
-  Sun,
   History,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
@@ -71,6 +70,8 @@ export default function PeakSeasonCalendar({
   const [isMobile, setIsMobile] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectionKey, setSelectionKey] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<PeakSeasonEvent | null>(null);
 
   const label = format(currentDate, "MMMM yyyy", { locale: id });
 
@@ -203,22 +204,8 @@ export default function PeakSeasonCalendar({
       return;
     }
 
-    const action = window.confirm(
-      `Hapus pengaturan harga untuk periode:\n${format(
-        event.start,
-        "dd/MM/yyyy"
-      )} - ${format(event.end, "dd/MM/yyyy")}?`
-    );
-
-    if (action && event.id) {
-      try {
-        await axios.delete(`/api/peak-season/${event.id}`);
-        await fetchData();
-      } catch (err) {
-        console.error("Failed to delete:", err);
-        alert("Gagal menghapus. Silakan coba lagi.");
-      }
-    }
+    setEventToDelete(event);
+    setShowDeleteModal(true);
   };
 
   const handleBulkDelete = async () => {
@@ -290,6 +277,40 @@ export default function PeakSeasonCalendar({
     setSelectedYear(year);
     const newDate = new Date(year, currentDate.getMonth(), 1);
     setCurrentDate(newDate);
+  };
+
+  const handleDelete = async () => {
+    if (!eventToDelete || !eventToDelete.id) return;
+
+    try {
+      await axios.delete(`/api/peak-season/${eventToDelete.id}`);
+      await fetchData();
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete:", err);
+      alert("Gagal menghapus. Silakan coba lagi.");
+    }
+  };
+
+  const CustomEvent = ({ event }: { event: PeakSeasonEvent }) => {
+    return (
+      <div className="flex items-center justify-between w-full">
+        <span>{event.title}</span>
+        {(event.type === 'peak' || event.type === 'unavailable') && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEventToDelete(event);
+              setShowDeleteModal(true);
+            }}
+            className="ml-2 text-white hover:text-red-300"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+    );
   };
 
   const CustomToolbar = () => (
@@ -420,6 +441,7 @@ export default function PeakSeasonCalendar({
                 popup
                 components={{
                   toolbar: CustomToolbar,
+                  event: CustomEvent,
                 }}
                 style={{
                   height: isMobile ? "350px" : "400px",
@@ -439,34 +461,58 @@ export default function PeakSeasonCalendar({
               />
             </div>
 
-            {/* Legend and Usage Guide */}
-            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3">
-                    Keterangan:
-                  </h3>
-                  <div className="flex flex-wrap gap-3 sm:gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded"></div>
-                      <span className="text-xs sm:text-sm text-gray-700">
-                        Harga Normal
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 sm:w-3 sm:h-3 bg-amber-500 rounded"></div>
-                      <span className="text-xs sm:text-sm text-gray-700">
-                        Harga Naik
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded"></div>
-                      <span className="text-xs sm:text-sm text-gray-700">
-                        Tidak Tersedia
-                      </span>
+            {/* Combined Quick Tips & Legend */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                
+                {/* Quick Tips - Kiri */}
+                <div className="flex items-start gap-3">
+                  <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 10-2 0v1a1 1 0 102 0v-1zm-1-8a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-blue-900 mb-2">Tips Cepat:</p>
+                    <ul className="text-xs text-blue-800 space-y-1.5">
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span>Drag mouse untuk memilih periode tanggal sekaligus</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span>Klik pada event yang berwarna untuk menghapus</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span>Harga normal berlaku untuk tanggal yang tidak diatur</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Legend - Kanan */}
+                <div className="flex items-start gap-3">
+                  <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M2.5 3a1 1 0 011-1h13a1 1 0 011 1v1a1 1 0 01-1 1h-13a1 1 0 01-1-1V3zm0 4a1 1 0 011-1h13a1 1 0 011 1v1a1 1 0 01-1 1h-13a1 1 0 01-1-1V7zm0 4a1 1 0 011-1h13a1 1 0 011 1v1a1 1 0 01-1 1h-13a1 1 0 01-1-1v-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-blue-900 mb-2">Keterangan Warna:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 text-xs text-blue-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-white border border-gray-400 rounded flex-shrink-0"></div>
+                        <span>Harga Normal</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-amber-500 rounded flex-shrink-0"></div>
+                        <span>Harga Naik</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded flex-shrink-0"></div>
+                        <span>Tidak Tersedia</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+
               </div>
             </div>
 
@@ -501,26 +547,7 @@ export default function PeakSeasonCalendar({
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Tipe Pengaturan
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <button
-                        onClick={() => setSelectedType("normal")}
-                        className={`p-3 rounded-lg border text-left transition-colors ${
-                          selectedType === "normal"
-                            ? "bg-green-100 border-green-300 text-green-800"
-                            : "bg-white border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Sun className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="text-xs sm:text-sm font-medium">
-                            Harga Normal
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Tersedia dengan harga biasa
-                        </p>
-                      </button>
-
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button
                         onClick={() => setSelectedType("peak")}
                         className={`p-3 rounded-lg border text-left transition-colors ${
@@ -714,6 +741,56 @@ export default function PeakSeasonCalendar({
           </div>
         )}
 
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && eventToDelete && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-lg flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Konfirmasi Hapus
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setEventToDelete(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Apakah Anda yakin ingin menghapus pengaturan harga untuk event ini?
+                </p>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <span className="text-sm font-medium text-gray-900">
+                    {eventToDelete.title}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+                >
+                  Hapus
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setEventToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Custom CSS */}
         <style jsx global>{`
           /* Base calendar styles */
@@ -753,11 +830,11 @@ export default function PeakSeasonCalendar({
           }
 
           .rbc-event {
-            min-height: 20px;
-            font-size: 10px;
+            min-height: 30px;
+            font-size: 12px;
             font-weight: 500;
             border: none;
-            padding: 2px 4px;
+            padding: 4px 10px;
           }
 
           /* Week view styling - hide time slots and show clean grid */

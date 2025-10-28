@@ -5,6 +5,7 @@ import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import ProtectedPage from "@/components/protectedPage";
+import Modal from "@/components/modal/modal";
 
 type RoomType = {
   id: number;
@@ -31,11 +32,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function TenantPropertyDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [categories, setCategories] = useState<PropertyCategory[]>([]);
-  const [searchInput, setSearchInput] = useState(""); // Input value untuk form
-  const [searchQuery, setSearchQuery] = useState(""); // Query yang digunakan untuk API
+  const [searchInput, setSearchInput] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState(""); 
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [showDeleteErrorModal, setShowDeleteErrorModal] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
   const [page, setPage] = useState(1);
   const perPage = 6;
@@ -101,21 +107,44 @@ export default function TenantPropertyDashboard() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Yakin ingin menghapus property ini? Tindakan ini tidak dapat dibatalkan.")) return;
-    
-    setDeletingId(id);
+  const handleDeleteClick = (property: Property) => {
+    setPropertyToDelete(property);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!propertyToDelete) return;
+
+    setShowDeleteModal(false);
+    setDeletingId(propertyToDelete.id);
     try {
-      await axios.delete(`${API_URL}/api/properties/dashboard/${id}`, {
+      await axios.delete(`${API_URL}/api/properties/dashboard/${propertyToDelete.id}`, {
         headers: { Authorization: token ? `Bearer ${token}` : "" },
       });
+      setShowDeleteSuccessModal(true);
       fetchProperties();
     } catch (err) {
       console.error("Gagal hapus property:", err);
-      alert("Gagal menghapus property. Silakan coba lagi.");
+      setDeleteErrorMessage("Gagal menghapus property. Silakan coba lagi.");
+      setShowDeleteErrorModal(true);
     } finally {
       setDeletingId(null);
+      setPropertyToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPropertyToDelete(null);
+  };
+
+  const handleDeleteSuccessClose = () => {
+    setShowDeleteSuccessModal(false);
+  };
+
+  const handleDeleteErrorClose = () => {
+    setShowDeleteErrorModal(false);
+    setDeleteErrorMessage("");
   };
 
 
@@ -415,7 +444,7 @@ export default function TenantPropertyDashboard() {
                             Edit
                           </Link>
                           <button
-                            onClick={() => handleDelete(prop.id)}
+                            onClick={() => handleDeleteClick(prop)}
                             disabled={deletingId === prop.id}
                             className="flex-1 inline-flex items-center justify-center px-2 sm:px-4 py-2 sm:py-3 border border-transparent text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
                           >
@@ -494,6 +523,97 @@ export default function TenantPropertyDashboard() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={showDeleteModal}
+        onClose={handleDeleteCancel}
+        title="Konfirmasi Hapus Property"
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-gray-700">
+              Apakah Anda yakin ingin menghapus property <span className="font-semibold">&#34;{propertyToDelete?.name}&#34;</span>?
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              Tindakan ini tidak dapat dibatalkan dan semua data terkait akan hilang permanen.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-200">
+          <button
+            onClick={handleDeleteCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleDeleteConfirm}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Hapus
+          </button>
+        </div>
+      </Modal>
+
+      {/* Delete Success Modal */}
+      <Modal
+        open={showDeleteSuccessModal}
+        onClose={handleDeleteSuccessClose}
+        title="Property Berhasil Dihapus"
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-gray-700">
+              Property <span className="font-semibold">&#34;{propertyToDelete?.name}&#34;</span> telah berhasil dihapus.
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+          <button
+            onClick={handleDeleteSuccessClose}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Tutup
+          </button>
+        </div>
+      </Modal>
+
+      {/* Delete Error Modal */}
+      <Modal
+        open={showDeleteErrorModal}
+        onClose={handleDeleteErrorClose}
+        title="Gagal Menghapus Property"
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-gray-700">{deleteErrorMessage}</p>
+          </div>
+        </div>
+        <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+          <button
+            onClick={handleDeleteErrorClose}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Tutup
+          </button>
+        </div>
+      </Modal>
     </ProtectedPage>
   );
 }

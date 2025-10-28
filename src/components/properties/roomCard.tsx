@@ -21,15 +21,16 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
   const isPeakSeason = checkInDate && checkOutDate && room?.peakSeasons?.some(season => {
     const seasonStart = new Date(season.startDate);
     const seasonEnd = new Date(season.endDate);
-
-    const overlaps = checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+    const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+    const overlaps = checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     return overlaps && (season.percentage || season.nominal);
   });
 
   const isDateAvailable = checkInDate && checkOutDate && room?.peakSeasons?.every(season => {
     const seasonStart = new Date(season.startDate);
     const seasonEnd = new Date(season.endDate);
-    const overlaps = checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+    const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+    const overlaps = checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     if (overlaps && season.isAvailable === false) {
       return false;
     }
@@ -42,7 +43,8 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
     const currentSeason = room.peakSeasons.find(season => {
       const seasonStart = new Date(season.startDate);
       const seasonEnd = new Date(season.endDate);
-      return checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+      const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+      return checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     });
     if (currentSeason) {
       if (currentSeason.nominal) {
@@ -52,6 +54,10 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
       }
     }
   }
+
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   return (
     <div className={`bg-white rounded-2xl shadow-lg border-2 p-6 transition-all duration-300 hover:shadow-xl ${
@@ -175,40 +181,62 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
       {room?.peakSeasons && room.peakSeasons.length > 0 && (
         <div className="mt-4 space-y-2">
           {/* Available Peak Seasons (price adjustments) */}
-          {room.peakSeasons.some(season => season.isAvailable !== false && (season.percentage || season.nominal)) && (
+    {room.peakSeasons.some(season => {
+      const seasonStart = new Date(season.startDate);
+      const seasonEnd = new Date(season.endDate);
+      const inCurrentMonth = seasonStart <= currentMonthEnd && seasonEnd >= currentMonthStart;
+      return inCurrentMonth && season.isAvailable !== false && (season.percentage || season.nominal);
+    }) && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <div className="flex items-center text-amber-800 text-sm">
                 <span className="font-semibold">🏖️ Peak Season (Harga Naik):</span>
                 <span className="ml-2">
                   {room.peakSeasons
-                    .filter(season => season.isAvailable !== false && (season.percentage || season.nominal))
-                    .map((season: PeakSeason, index: number, filteredSeasons) => (
-                      <span key={index}>
-                        {new Date(season.startDate).toLocaleDateString('id-ID')} - {new Date(season.endDate).toLocaleDateString('id-ID')}
-                        {season.percentage && ` (+${season.percentage}%)`}
-                        {season.nominal && ` (+Rp${season.nominal.toLocaleString('id-ID')})`}
-                        {index < filteredSeasons.length - 1 && ', '}
-                      </span>
-                    ))}
+                    .filter(season => {
+                      const seasonStart = new Date(season.startDate);
+                      const seasonEnd = new Date(season.endDate);
+                      const inCurrentMonth = seasonStart <= currentMonthEnd && seasonEnd >= currentMonthStart;
+                      return inCurrentMonth && season.isAvailable !== false && (season.percentage || season.nominal);
+                    })
+                    .map((season: PeakSeason, index: number, filteredSeasons) => {
+                      const start = new Date(season.startDate);
+                      const end = new Date(new Date(season.endDate).getTime() - 24 * 60 * 60 * 1000);
+                      const isSameDay = start.toDateString() === end.toDateString();
+                      const dateString = isSameDay ? start.toLocaleDateString('id-ID') : `${start.toLocaleDateString('id-ID')} - ${end.toLocaleDateString('id-ID')}`;
+                      return `${dateString}${season.percentage ? ` (+${season.percentage}%)` : ''}${season.nominal ? ` (+Rp${season.nominal.toLocaleString('id-ID')})` : ''}${index < filteredSeasons.length - 1 ? ', ' : ''}`;
+                    })
+                    .join('')}
                 </span>
               </div>
             </div>
           )}
 
           {/* Unavailable Peak Seasons */}
-          {room.peakSeasons.some(season => season.isAvailable === false) && (
+    {room.peakSeasons.some(season => {
+      const seasonStart = new Date(season.startDate);
+      const seasonEnd = new Date(season.endDate);
+      const inCurrentMonth = seasonStart <= currentMonthEnd && seasonEnd >= currentMonthStart;
+      return inCurrentMonth && season.isAvailable === false;
+    }) && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center text-red-800 text-sm">
                 <span className="font-semibold">❌ Tidak Tersedia:</span>
                 <span className="ml-2">
                   {room.peakSeasons
-                    .filter(season => season.isAvailable === false)
-                    .map((season: PeakSeason, index: number, filteredSeasons) => (
-                      <span key={index}>
-                        {new Date(season.startDate).toLocaleDateString('id-ID')} - {new Date(season.endDate).toLocaleDateString('id-ID')}
-                        {index < filteredSeasons.length - 1 && ', '}
-                      </span>
-                    ))}
+                    .filter(season => {
+                      const seasonStart = new Date(season.startDate);
+                      const seasonEnd = new Date(season.endDate);
+                      const inCurrentMonth = seasonStart <= currentMonthEnd && seasonEnd >= currentMonthStart;
+                      return inCurrentMonth && season.isAvailable === false;
+                    })
+                    .map((season: PeakSeason, index: number, filteredSeasons) => {
+                      const start = new Date(season.startDate);
+                      const end = new Date(new Date(season.endDate).getTime() - 24 * 60 * 60 * 1000);
+                      const isSameDay = start.toDateString() === end.toDateString();
+                      const dateString = isSameDay ? start.toLocaleDateString('id-ID') : `${start.toLocaleDateString('id-ID')} - ${end.toLocaleDateString('id-ID')}`;
+                      return `${dateString}${index < filteredSeasons.length - 1 ? ', ' : ''}`;
+                    })
+                    .join('')}
                 </span>
               </div>
             </div>

@@ -30,8 +30,8 @@ const BookingSidebar: React.FC<Props> = ({ selectedRoom, onBook, checkInDate, se
   const isDateAvailable = checkInDate && checkOutDate && selectedRoom?.peakSeasons?.every(season => {
     const seasonStart = new Date(season.startDate);
     const seasonEnd = new Date(season.endDate);
-
-    const overlaps = checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+    const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+    const overlaps = checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     if (overlaps && season.isAvailable === false) {
       return false;
     }
@@ -92,8 +92,8 @@ const BookingSidebar: React.FC<Props> = ({ selectedRoom, onBook, checkInDate, se
   const isPeakSeason = checkInDate && checkOutDate && selectedRoom && selectedRoom.peakSeasons?.some(season => {
     const seasonStart = new Date(season.startDate);
     const seasonEnd = new Date(season.endDate);
-
-    const overlaps = checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+    const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+    const overlaps = checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     return overlaps && (season.percentage || season.nominal);
   });
 
@@ -102,7 +102,8 @@ const BookingSidebar: React.FC<Props> = ({ selectedRoom, onBook, checkInDate, se
     const currentSeason = selectedRoom.peakSeasons.find(season => {
       const seasonStart = new Date(season.startDate);
       const seasonEnd = new Date(season.endDate);
-      return checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+      const bookingEnd = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+      return checkInDate <= seasonEnd && bookingEnd >= seasonStart;
     });
     if (currentSeason) {
       if (currentSeason.nominal) {
@@ -198,7 +199,7 @@ const BookingSidebar: React.FC<Props> = ({ selectedRoom, onBook, checkInDate, se
                     </div>
                     {isPeakSeason && (
                       <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full mt-1 font-medium">
-                        Musim Puncak
+                        Peak Season
                       </span>
                     )}
                   </div>
@@ -393,7 +394,18 @@ const BookingSidebar: React.FC<Props> = ({ selectedRoom, onBook, checkInDate, se
               <div className="flex justify-between text-sm text-gray-600">
                 <span className="flex items-center">
                   Harga Peak Season ({pricing.peakNights} malam)
-                  <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full ml-2">+{selectedRoom?.peakSeasons?.find(s => s.percentage)?.percentage}%</span>
+                  {(() => {
+                    const currentSeason = selectedRoom?.peakSeasons?.find(season => {
+                      const seasonStart = new Date(season.startDate);
+                      const seasonEnd = new Date(season.endDate);
+                      return checkInDate && checkOutDate && checkInDate <= seasonEnd && checkOutDate >= seasonStart;
+                    });
+                    return currentSeason ? (
+                      <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full ml-2">
+                        {currentSeason.nominal ? `+Rp ${currentSeason.nominal.toLocaleString('id-ID')}` : currentSeason.percentage ? `+${currentSeason.percentage}%` : ''}
+                      </span>
+                    ) : null;
+                  })()}
                 </span>
                 <span>Rp {(pricing.peakTotal || 0).toLocaleString('id-ID')}</span>
               </div>

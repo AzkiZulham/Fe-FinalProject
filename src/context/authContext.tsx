@@ -118,11 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("verifyToken");
     toast.success("Berhasil logout!");
-
-    setTimeout(() => {
-      window.location.reload();
-      router.push("/");
-    }, 1500);
+    router.push("/");
   };
 
   return (
