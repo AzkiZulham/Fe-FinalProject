@@ -7,6 +7,7 @@ import StatusBadge from "../../statusBadge";
 import ReviewSection from "../../orders/review/reviewFormik";
 import UploadPaymentProofFormik from "../../orders/uploadPayment/uploadPayment";
 import { payWithMidtrans } from "@/components/orders/midtransPayment/payWithMidtrans";
+import PaymentProofPreview from "@/components/transaction/previewPaymentProof";
 
 export default function OrderDetailBody({ id }: { id: number }) {
   const [order, setOrder] = useState<UserOrderDetail | null>(null);
@@ -115,7 +116,12 @@ export default function OrderDetailBody({ id }: { id: number }) {
           <div>Status: {order.payment?.paymentStatus ?? "-"}</div>
           {order.payment?.paymentProof && (
             <div>
-              Bukti bayar: <span className="text-gray-600">sudah diunggah</span>
+              Bukti bayar:{" "}
+              <span className="text-gray-600">
+                <PaymentProofPreview
+                  src={order.payment?.paymentProof ?? null}
+                />
+              </span>
             </div>
           )}
           {order.payment?.paymentUrl && order.status !== "CANCELLED" && (
