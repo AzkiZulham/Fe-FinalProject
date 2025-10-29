@@ -25,6 +25,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { TenantData } from "./TenantTypes";
 import ProtectedPage from "@/components/protectedPage";
+import { axios } from "@/lib/axios";
 
 interface Props {
   tenantData: TenantData;
@@ -59,13 +60,6 @@ export default function TenantPersonalInfoForm({
   const handleUpdate = async () => {
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Sesi login tidak valid. Silakan login ulang.");
-        setIsUpdating(false);
-        return;
-      }
-
       const payload = {
         username: tenantData.username || "",
         email: tenantData.email || "",
@@ -76,22 +70,8 @@ export default function TenantPersonalInfoForm({
         gender: tenantData.gender || "",
       };
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/tenant/update-profile`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const body = await res.json();
-
-      if (!res.ok) throw new Error(body.message || "Update profil gagal");
+      const res = await axios.put('/api/tenant/update-profile', payload);
+      const body = res.data;
 
       setTenantData((prev) => ({
         ...prev,

@@ -5,8 +5,18 @@ import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type Props = {
   role: "USER" | "TENANT";
@@ -31,6 +41,67 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
   const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [checkedEmail, setCheckedEmail] = useState<string>("");
+  const [resendDisabled, setResendDisabled] = useState(false);
+
+  // Check email status on blur
+  const checkEmailStatus = async (email: string) => {
+    if (!email || !Yup.string().email().isValidSync(email)) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, role }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.exists && (!data.isVerified || data.tokenExpired)) {
+        setCheckedEmail(email);
+        setShowVerificationModal(true);
+      }
+      // If email exists and is verified with valid token, proceed normally (no modal)
+    } catch (err) {
+      console.error("Email check error:", err);
+    }
+  };
+
+  // Resend verification email
+  const handleResendVerification = async () => {
+    if (!checkedEmail || resendDisabled) return;
+
+    setIsResending(true);
+    setResendDisabled(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-verification`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: checkedEmail, role }),
+        }
+      );
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Gagal kirim ulang email verifikasi");
+      }
+
+      toast.success("Email verifikasi telah dikirim ulang!");
+      setShowVerificationModal(false);
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Gagal mengirim ulang verifikasi");
+      setResendDisabled(false); // Re-enable if error
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   async function handleSubmit(values: { email: string; password: string }) {
     setServerError(null);
@@ -108,6 +179,9 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
                 type="email"
                 autoComplete="email"
                 aria-required
+                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                  checkEmailStatus(e.target.value);
+                }}
                 className="mt-2 w-full px-4 py-3 rounded-4xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-none focus:outline-none focus:ring-2 focus:ring-[#2f567a]"
                 placeholder="example@email.com"
               />
@@ -179,35 +253,39 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         )}
       </Formik>
 
-      <div className="flex items-center my-6">
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-        <span className="mx-3 text-sm text-gray-500 dark:text-gray-400">
-          atau masuk dengan
-        </span>
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-      </div>
+      {role === "USER" && (
+        <>
+          <div className="flex items-center my-6">
+            <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+            <span className="mx-3 text-sm text-gray-500 dark:text-gray-400">
+              atau masuk dengan
+            </span>
+            <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+          </div>
 
-      <div className="space-y-3">
-        <button
-          onClick={() =>
-            (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`)
-          }
-          className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
-        >
-          <FaGoogle className="w-5 h-5" />
-          Masuk dengan Google
-        </button>
+          <div className="space-y-3">
+            <button
+              onClick={() =>
+                (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`)
+              }
+              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
+            >
+              <FaGoogle className="w-5 h-5" />
+              Masuk dengan Google
+            </button>
 
-        <button
-          onClick={() =>
-            (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`)
-          }
-          className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
-        >
-          <FaFacebook className="w-5 h-5" />
-          Masuk dengan Facebook
-        </button>
-      </div>
+            <button
+              onClick={() =>
+                (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`)
+              }
+              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
+            >
+              <FaFacebook className="w-5 h-5" />
+              Masuk dengan Facebook
+            </button>
+          </div>
+        </>
+      )}
 
       <footer className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
         Belum punya akun?{" "}
@@ -218,6 +296,55 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
           Daftar
         </a>
       </footer>
+
+      {/* Verification Modal */}
+      <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-[#2f567a] text-xl">
+              Akun Belum Terverifikasi
+            </DialogTitle>
+            <DialogDescription className="mt-3 text-gray-600 text-base">
+              Email <strong className="text-[#2f567a]">{checkedEmail}</strong> sudah terdaftar tetapi belum diverifikasi atau token verifikasi sudah kadaluarsa.
+              <br />
+              <span className="text-sm mt-2 block">
+                Klik tombol di bawah untuk mengirim ulang email verifikasi.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowVerificationModal(false)}
+              className="flex-1"
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleResendVerification}
+              disabled={isResending || resendDisabled}
+              className="flex-1 bg-[#2f567a] text-white hover:bg-[#23425e]"
+            >
+              {isResending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Mengirim...
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Kirim Ulang
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

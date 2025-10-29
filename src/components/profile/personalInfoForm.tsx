@@ -24,6 +24,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { UserData } from "./types";
+import { axios } from "@/lib/axios";
 
 const stripHtml = (html: string) => {
   const tmp = document.createElement("DIV");
@@ -75,48 +76,17 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           : null,
       };
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/update-profile`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await axios.put('/api/user/update-profile', payload);
 
-      const body = await res.json();
+      const body = res.data;
 
-      if (!res.ok) throw new Error(body.message || "Update profil gagal");
-
-      const userRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/me`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        }
-      );
-      const userBody = await userRes.json();
-      if (userRes.ok) {
-        setUserData({
-          ...userBody.user,
-          isEmailVerified: userBody.user.isEmailUpdated ? false : userBody.user.isEmailVerified,
-          isEmailUpdated: userBody.user.isEmailUpdated !== undefined ? userBody.user.isEmailUpdated : userData.email !== userBody.user.email,
-        });
-      } else {
-        setUserData((prev) => ({
-          ...prev,
-          ...body.user,
-          isEmailVerified: body.user.isEmailUpdated ? false : (body.user.isEmailVerified !== undefined ? body.user.isEmailVerified : false),
-          isEmailUpdated: body.user.isEmailUpdated !== undefined ? body.user.isEmailUpdated : prev.email !== body.user.email,
-        }));
-      }
+      const userRes = await axios.get('/api/user/me');
+      const userBody = userRes.data;
+      setUserData({
+        ...userBody.user,
+        isEmailVerified: userBody.user.isEmailUpdated ? false : userBody.user.isEmailVerified,
+        isEmailUpdated: userBody.user.isEmailUpdated !== undefined ? userBody.user.isEmailUpdated : userData.email !== userBody.user.email,
+      });
 
       const emailChanged = userData.email !== body.user?.email;
 

@@ -61,7 +61,7 @@ export default function PropertyCatalogPage() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchProperties();
-    }, 300); // Debounce 300ms
+    }, 300); 
 
     return () => clearTimeout(timeoutId);
   }, [filters, page]);

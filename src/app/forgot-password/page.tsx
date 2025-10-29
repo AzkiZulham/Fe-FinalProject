@@ -1,43 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { axios } from "@/lib/axios";
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email("Email tidak valid").required("Email wajib diisi"),
 });
 
+const COOLDOWN_KEY = 'forgotPasswordCooldownEnd';
+
 export default function ForgotPasswordClient() {
   const [serverMessage, setServerMessage] = useState<string | null>(null);
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const savedEndTime = localStorage.getItem(COOLDOWN_KEY);
+    if (savedEndTime) {
+      const endTime = parseInt(savedEndTime);
+      const now = Date.now();
+      if (now < endTime) {
+        setIsCooldown(true);
+        setCooldownTime(Math.floor((endTime - now) / 1000));
+      } else {
+        localStorage.removeItem(COOLDOWN_KEY);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isCooldown && cooldownTime > 0) {
+      const timer = setTimeout(() => {
+        setCooldownTime(cooldownTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (cooldownTime === 0 && isCooldown) {
+      setIsCooldown(false);
+      localStorage.removeItem(COOLDOWN_KEY);
+    }
+  }, [isCooldown, cooldownTime]);
 
   async function handleSubmit(values: { email: string }) {
     setServerMessage(null);
 
     try {
-      const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        }/api/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setServerMessage(data.error || "Terjadi kesalahan. Coba lagi.");
-        return;
-      }
-
-      setServerMessage(
-        " Link reset password telah dikirim ke email Anda."
-      );
-    } catch {
-      setServerMessage("Terjadi kesalahan jaringan. Coba lagi.");
+      await axios.post("/api/auth/forgot-password", values);
+      setServerMessage(" Link reset password telah dikirim ke email Anda.");
+      setIsCooldown(true);
+      setCooldownTime(3600);
+      const endTime = Date.now() + 3600 * 1000;
+      localStorage.setItem(COOLDOWN_KEY, endTime.toString());
+    } catch (error: any) {
+      setServerMessage(error.message || "Terjadi kesalahan. Coba lagi.");
     }
   }
 
@@ -59,8 +76,10 @@ export default function ForgotPasswordClient() {
           initialValues={{ email: "" }}
           validationSchema={ForgotPasswordSchema}
           onSubmit={async (values, { setSubmitting }) => {
+            setShowModal(true);
             await handleSubmit(values);
             setSubmitting(false);
+            setShowModal(false);
           }}
         >
           {({ isSubmitting }) => (
@@ -89,10 +108,14 @@ export default function ForgotPasswordClient() {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isCooldown}
                 className="w-full bg-[#2f567a] text-white px-4 py-3 rounded-4xl font-semibold hover:bg-[#3a6b97] transition disabled:opacity-60"
               >
-                {isSubmitting ? "Mengirim..." : "Kirim Link Reset"}
+                {isSubmitting
+                  ? "Mengirim..."
+                  : isCooldown
+                  ? `Tunggu ${Math.floor(cooldownTime / 60)}:${(cooldownTime % 60).toString().padStart(2, '0')} untuk kirim ulang`
+                  : "Kirim Link Reset"}
               </button>
             </Form>
           )}
@@ -129,6 +152,23 @@ export default function ForgotPasswordClient() {
           </a>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-100 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-4xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f567a] mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-[#2f567a] mb-2">
+                Mengirim Link Reset Password
+              </h3>
+              <p className="text-sm text-gray-500">
+                Harap tunggu sebentar, link reset password sedang dikirim ke email Anda.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

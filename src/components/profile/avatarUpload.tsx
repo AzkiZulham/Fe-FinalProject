@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { UserData } from "./types";
+import { axios } from "@/lib/axios";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
   const [isSending, setIsSending] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const searchParams = useSearchParams();
 
   // ======================
@@ -33,18 +35,8 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
   // ======================
   const fetchUserData = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!res.ok) return;
-      const data = await res.json();
+      const res = await axios.get('/api/user/me');
+      const data = res.data;
       const normalizedUser: UserData = {
         userName: data.user.userName || "",
         email: data.user.email || "",
@@ -91,6 +83,36 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
   }, [fetchUserData]);
 
   // ======================
+  // Load last send time from localStorage and set countdown
+  // ======================
+  useEffect(() => {
+    const storedTime = localStorage.getItem('emailVerificationLastSent');
+    if (storedTime) {
+      const elapsed = Date.now() - parseInt(storedTime);
+      const remaining = Math.max(0, 3600000 - elapsed); // 1 hour in ms
+      setCountdown(Math.ceil(remaining / 1000)); // seconds
+    }
+  }, []);
+
+  // ======================
+  // Update countdown every second
+  // ======================
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            localStorage.removeItem('emailVerificationLastSent');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [countdown]);
+
+  // ======================
   // Upload Avatar
   // ======================
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,24 +134,16 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
 
     setIsUploading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
-
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/upload-avatar`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }
-      );
+      const res = await axios.post('/api/user/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      if (!res.ok) throw new Error("Gagal upload avatar");
-
-      const data = await res.json();
+      const data = res.data;
       if (!data.avatar) throw new Error("URL avatar tidak ditemukan");
 
       setUserData((prev) => ({ ...prev, avatar: data.avatar }));
@@ -154,25 +168,10 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
     if (!userData.email) return toast.error("Email tidak tersedia");
     setIsSending(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
+      await axios.post('/api/auth/send-verification', { email: userData.email });
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email: userData.email }),
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Gagal mengirim email verifikasi");
-      }
+      localStorage.setItem('emailVerificationLastSent', Date.now().toString());
+      setCountdown(3600); // 1 hour in seconds
 
       setShowEmailModal(true);
       toast.success(`Email verifikasi telah dikirim ke ${userData.email}.`);
@@ -190,25 +189,10 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
     if (!userData.email) return toast.error("Email tidak tersedia");
     setIsSending(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
+      await axios.post('/api/auth/resend-verification', { email: userData.email });
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/resend-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email: userData.email }),
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Gagal kirim ulang email verifikasi");
-      }
+      localStorage.setItem('emailVerificationLastSent', Date.now().toString());
+      setCountdown(3600); // 1 hour in seconds
 
       setShowEmailModal(true);
       toast.success(
@@ -302,7 +286,7 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
               ? handleResendVerification
               : handleSendVerification
           }
-          disabled={isSending}
+          disabled={isSending || countdown > 0}
           className="mt-4 bg-white text-[#2f567a] hover:bg-gray-50 flex items-center shadow-md border border-gray-200"
         >
           {isSending ? (
@@ -312,6 +296,8 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
           )}
           {isSending
             ? "Mengirim..."
+            : countdown > 0
+            ? `Kirim Ulang dalam ${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}`
             : userData.isEmailUpdated
             ? "Kirim Ulang Verifikasi"
             : "Verifikasi Email"}
@@ -372,6 +358,10 @@ export default function AvatarUpload({ userData, setUserData }: Props) {
               <span className="text-sm mt-2 block">
                 Silakan cek kotak masuk atau folder spam Anda untuk
                 menyelesaikan proses verifikasi.
+              </span>
+              <br />
+              <span className="text-sm mt-2 block text-orange-600 font-medium">
+                Tombol verifikasi akan tersedia kembali dalam 1 jam.
               </span>
             </DialogDescription>
           </DialogHeader>

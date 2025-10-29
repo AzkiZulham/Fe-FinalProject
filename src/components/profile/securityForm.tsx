@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import { axios } from "@/lib/axios";
 import { Eye, EyeOff, Lock, Loader2, CheckCircle2, XCircle, AlertCircle, ShieldCheck } from "lucide-react";
 import {
   Dialog,
@@ -69,26 +70,11 @@ export default function SecurityForm() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/update-password`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ password }),
-      });
+      await axios.put('/api/user/update-password', { password });
       
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || "Gagal update password");
-      }
-      
-      // Tampilkan modal sukses
       setShowSuccessModal(true);
       toast.success("Password berhasil diperbarui");
       
-      // Reset form
       setPassword("");
       setConfirmPassword("");
     } catch (error: unknown) {

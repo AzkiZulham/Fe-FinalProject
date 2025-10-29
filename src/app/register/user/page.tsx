@@ -5,11 +5,12 @@ import * as Yup from "yup";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
+import { axios } from "@/lib/axios";
 
 type RegisterUserValues = {
   email: string;
   role: "USER";
-  username?: string; // opsional
+  username?: string; 
 };
 
 const RegisterUserSchema = Yup.object().shape({
@@ -20,27 +21,15 @@ export default function RegisterUser() {
   const [showModal, setShowModal] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (values: RegisterUserValues) => {
     setMessage(null);
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: values.email,
-          role: "USER", // selalu kirim "user"
-        }),
+      await axios.post("/api/auth/register", {
+        email: values.email,
+        role: "USER",
       });
-  
-      const data = await res.json();
-  
-      if (res.ok) {
-        setShowModal(true);
-      } else {
-        setMessage(data.error || "Terjadi kesalahan. Coba lagi.");
-      }
+      setShowModal(true);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Terjadi kesalahan jaringan. Coba lagi."
@@ -79,7 +68,7 @@ export default function RegisterUser() {
 
         {/* Form */}
         <Formik
-          initialValues={{ username: "", email: "", role: "USER" as const }} // role diisi dengan "user"
+          initialValues={{ username: "", email: "", role: "USER" as const }}
           validationSchema={RegisterUserSchema}
           onSubmit={async (values, { setSubmitting }) => {
             await handleSubmit(values);
@@ -167,32 +156,32 @@ export default function RegisterUser() {
 
       {/* Modal */}
       {showModal && (
+      <div
+        className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-500 ease-in-out bg-black/30 ${
+          animateOut ? "opacity-0 backdrop-blur-none" : "opacity-100 backdrop-blur-md"
+        }`}
+      >
         <div
-          className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out ${
-            animateOut ? "opacity-0" : "opacity-100"
+          className={`bg-white dark:bg-gray-900 p-6 rounded-xl shadow-2xl max-w-sm text-center space-y-4 transform transition-all duration-500 ${
+            animateOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
           }`}
         >
-          <div
-            className={`bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg max-w-sm text-center space-y-4 transform transition-transform duration-300 ${
-              animateOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
-            }`}
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Verifikasi Email
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">
+            Registrasi berhasil! Silakan cek email Anda untuk memverifikasi
+            akun.
+          </p>
+          <button
+            onClick={closeModal}
+            className="mt-2 px-4 py-2 bg-[#2f567a] hover:bg-[#3a6b97] text-white rounded-lg font-medium transition-all duration-300 hover:scale-105"
           >
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Verifikasi Email
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Registrasi berhasil! Silakan cek email Anda untuk memverifikasi
-              akun.
-            </p>
-            <button
-              onClick={closeModal}
-              className="mt-2 px-4 py-2 bg-[#2f567a] hover:bg-[#3a6b97] text-white rounded-lg font-medium transition"
-            >
-              Tutup
-            </button>
-          </div>
+            Tutup
+          </button>
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 }

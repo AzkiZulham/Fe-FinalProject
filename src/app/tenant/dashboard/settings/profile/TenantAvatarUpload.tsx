@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { axios } from "@/lib/axios";
 
 interface Props {
   tenantData: TenantData;
@@ -30,15 +31,8 @@ export default function TenantAvatarUpload({ tenantData, setTenantData }: Props)
 
   const fetchTenantData = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tenant/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) return;
-      const data = await res.json();
+      const res = await axios.get('/api/tenant/profile');
+      const data = res.data;
       const normalizedTenant: TenantData = {
         id: data.id,
         username: data.username || "",
@@ -92,24 +86,11 @@ export default function TenantAvatarUpload({ tenantData, setTenantData }: Props)
 
     setIsUploading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
-
       const formData = new FormData();
       formData.append("profileImg", file);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/tenant/upload`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }
-      );
-
-      if (!res.ok) throw new Error("Gagal upload avatar");
-
-      const data = await res.json();
+      const res = await axios.put('/api/tenant/upload', formData);
+      const data = res.data;
       if (!data.profileImg) throw new Error("URL avatar tidak ditemukan");
       setTenantData((prev) => ({
         ...prev,
@@ -133,26 +114,7 @@ export default function TenantAvatarUpload({ tenantData, setTenantData }: Props)
     if (!tenantData.email) return toast.error("Email tidak tersedia");
     setIsSending(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email: tenantData.email }),
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Gagal mengirim email verifikasi");
-      }
-
+      await axios.post('/api/auth/send-verification', { email: tenantData.email });
       setShowEmailModal(true);
       toast.success(`Email verifikasi telah dikirim ke ${tenantData.email}.`);
     } catch (err: unknown) {
@@ -169,26 +131,7 @@ export default function TenantAvatarUpload({ tenantData, setTenantData }: Props)
     if (!tenantData.email) return toast.error("Email tidak tersedia");
     setIsSending(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token tidak ditemukan");
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/resend-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email: tenantData.email }),
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Gagal kirim ulang email verifikasi");
-      }
-
+      await axios.post('/api/auth/resend-verification', { email: tenantData.email });
       setShowEmailModal(true);
       toast.success(
         `Email verifikasi baru telah dikirim ke ${tenantData.email}. Silakan cek inbox.`

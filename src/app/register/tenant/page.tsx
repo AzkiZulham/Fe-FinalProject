@@ -2,14 +2,14 @@
 
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
+import { axios } from "@/lib/axios";
 
 type RegisterTenantValues = {
   email: string;
   role: "TENANT";
-  username?: string; // opsional
+  username?: string; 
 };
 
 const RegisterTenantSchema = Yup.object().shape({
@@ -20,32 +20,36 @@ export default function RegisterTenant() {
   const [showModal, setShowModal] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(null);
+
+  const checkEmail = async (email: string) => {
+    if (!email) return;
+    try {
+      const res = await axios.get(`/api/auth/check-email`, {
+        params: { email },
+      });
+      setIsEmailAvailable(res.data.available);
+      if (!res.data.available) {
+        setMessage("Email sudah terdaftar");
+      } else {
+        setMessage(null);
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+    }
+  };
 
   const handleSubmit = async (values: RegisterTenantValues) => {
     setMessage(null);
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: values.username||"",
-          email: values.email,
-          role: "TENANT", // selalu kirim "user"
-        }),
+      await axios.post(`/api/auth/register`, {
+        username: values.username || "",
+        email: values.email,
+        role: "TENANT",
       });
-  
-      const data = await res.json();
-  
-      if (res.ok) {
-        setShowModal(true);
-      } else {
-        setMessage(data.error || "Terjadi kesalahan. Coba lagi.");
-      }
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Terjadi kesalahan jaringan. Coba lagi."
-      );
+      setShowModal(true);
+    } catch (error: any) {
+      setMessage(error.response?.data?.error || "Terjadi kesalahan. Coba lagi.");
     }
   };
   
@@ -80,7 +84,7 @@ export default function RegisterTenant() {
 
         {/* Form email */}
         <Formik
-          initialValues={{ email: "", role: "TENANT" as const }} // Set role to "tenant"
+          initialValues={{ email: "", role: "TENANT" as const }} 
           validationSchema={RegisterTenantSchema}
           onSubmit={async (values, { setSubmitting }) => {
             await handleSubmit(values);
@@ -95,6 +99,7 @@ export default function RegisterTenant() {
                   type="email"
                   name="email"
                   placeholder="Alamat email"
+                  onBlur={(e: any) => checkEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow bg-gray-50 dark:bg-gray-800"
                 />
                 <ErrorMessage
@@ -106,8 +111,8 @@ export default function RegisterTenant() {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg"
+                disabled={isSubmitting || isEmailAvailable === false}
+                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Lanjutkan dengan Email
               </button>
@@ -121,38 +126,6 @@ export default function RegisterTenant() {
             {message}
           </p>
         )}
-
-        {/* Separator */}
-        <div className="flex items-center my-4">
-          <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-          <span className="mx-3 text-sm text-gray-500 dark:text-gray-400">
-            atau gunakan salah satu opsi ini
-          </span>
-          <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-        </div>
-
-        {/* Social login buttons */}
-        <div className="space-y-3">
-        <button
-            onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google?role=TENANT&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
-            }}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
-          >
-            <FaGoogle className="w-5 h-5" />
-            Daftar dengan Google
-          </button>
-
-          <button
-            onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook?role=TENANT&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
-            }}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
-          >
-            <FaFacebook className="w-5 h-5" />
-            Daftar dengan Facebook
-          </button>
-        </div>
 
         {/* Disclaimer dengan link */}
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
@@ -170,12 +143,12 @@ export default function RegisterTenant() {
       {/* Modal */}
       {showModal && (
         <div
-          className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out ${
-            animateOut ? "opacity-0" : "opacity-100"
+          className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-500 ease-in-out bg-black/30 ${
+            animateOut ? "opacity-0 backdrop-blur-none" : "opacity-100 backdrop-blur-md"
           }`}
         >
           <div
-            className={`bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg max-w-sm text-center space-y-4 transform transition-transform duration-300 ${
+            className={`bg-white dark:bg-gray-900 p-6 rounded-xl shadow-2xl max-w-sm text-center space-y-4 transform transition-all duration-500 ${
               animateOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
             }`}
           >
@@ -188,7 +161,7 @@ export default function RegisterTenant() {
             </p>
             <button
               onClick={closeModal}
-              className="mt-2 px-4 py-2 bg-[#2f567a] hover:bg-[#3a6b97] text-white rounded-lg font-medium transition"
+              className="mt-2 px-4 py-2 bg-[#2f567a] hover:bg-[#3a6b97] text-white rounded-lg font-medium transition-all duration-300 hover:scale-105"
             >
               Tutup
             </button>

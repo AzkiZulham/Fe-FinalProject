@@ -50,7 +50,7 @@ type PropertyResponse = {
   reviews: any[];
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 const safeSrc = (src: string | File | null) => {
   if (!src) return null;
@@ -247,9 +247,6 @@ export default function EditPropertyPage() {
                 <p className="text-gray-600 text-sm sm:text-base">Perbarui informasi properti dan tipe kamar yang tersedia</p>
               </div>
               <div className="mt-3 lg:mt-0">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  ID: {property.id}
-                </span>
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import ProtectedPage from "@/components/protectedPage";
+import { axios } from "@/lib/axios";
 
 export default function TenantSecurityForm() {
   const [password, setPassword] = useState("");
@@ -64,26 +65,7 @@ export default function TenantSecurityForm() {
 
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Sesi login tidak valid. Silakan login ulang.");
-        return;
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tenant/update-password`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Gagal update password");
-      }
+      await axios.put('/api/tenant/update-password', { password });
       setShowSuccessModal(true);
       toast.success("Password berhasil diperbarui");
 
