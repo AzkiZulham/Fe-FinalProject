@@ -88,13 +88,13 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
                   {room.childQty}
                 </div>
               )}
+              {roomImages.length > 1 && (
+                <div className="flex items-center text-xs">
+                  +{roomImages.length - 1} foto
+                </div>
+              )}
             </div>
           </div>
-          {roomImages.length > 1 && (
-            <div className="absolute bottom-3 right-3 bg-black/80 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-              +{roomImages.length - 1} foto
-            </div>
-          )}
         </div>
         
         <div className="flex-1">
