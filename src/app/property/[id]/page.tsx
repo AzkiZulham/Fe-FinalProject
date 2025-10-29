@@ -217,20 +217,29 @@ export default function PropertyDetailPage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            {property.name}
-          </h1>
+      <div className="relative bg-gradient-to-r from-[#2f567a] to-[#1e3a4f] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-12">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="flex-1">
+              <h1 className="text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+                {property.name}
+              </h1>
 
-          <div className="flex items-center space-x-2 text-gray-600 mb-4">
-            <MapPin className="w-5 h-5 text-[#2f567a]" />
-            <span className="text-lg">{property.address}</span>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                  <MapPin className="w-5 h-5 text-white" />
+                  <span className="text-lg font-medium">{property.address}</span>
+                </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <p className="text-white/90 text-xl leading-relaxed">
+                  {property.description}
+                </p>
+              </div>
+            </div>
           </div>
-
-          <p className="text-gray-700 text-lg leading-relaxed max-w-4xl">
-            {property.description}
-          </p>
         </div>
       </div>
 
