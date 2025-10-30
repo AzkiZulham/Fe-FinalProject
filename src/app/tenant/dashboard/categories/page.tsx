@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+
+export const dynamic = 'force-dynamic';
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash, Search, FolderOpen, Loader2 } from "lucide-react";
@@ -75,9 +77,10 @@ export default function PropertyCategoriesPage() {
   }
 
   return (
-    <ProtectedPage role="TENANT">
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedPage role="TENANT">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -282,15 +285,16 @@ export default function PropertyCategoriesPage() {
           onClose={() => setIsAddOpen(false)}
           onSuccess={fetchCategories}
         />
-        
+
         <EditCategoryModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
           category={selectedCategory}
           onSuccess={fetchCategories}
         />
-      </div>
-    </div>
-    </ProtectedPage>
+          </div>
+        </div>
+      </ProtectedPage>
+    </Suspense>
   );
 }

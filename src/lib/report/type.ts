@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-type GroupBy = "property" | "transaction" | "user";
-type SortBy = "revenue" | "date";
-type Order = "asc" | "desc";
+export type GroupBy = "property" | "transaction" | "user";
+export type SortBy = "revenue" | "date";
+export type Order = "asc" | "desc";
 
-type Summary = {
+export type Summary = {
   totalRevenue: number;
   countTransaction: number;
   byMethod: {
@@ -12,7 +11,7 @@ type Summary = {
   };
 };
 
-type ApiParams = {
+export type ApiParams = {
   dateFrom: string | null;
   dateTo: string | null;
   groupBy: GroupBy;
@@ -23,7 +22,7 @@ type ApiParams = {
   propertyId: number | null;
 };
 
-type ItemTxn = {
+export type ItemTxn = {
   transactionId: number;
   orderNumber: string;
   paidAt: string | null;
@@ -34,7 +33,7 @@ type ItemTxn = {
   user?: { id: number; username: string | null; email: string | null };
 };
 
-type ItemGroup = {
+export type ItemGroup = {
   revenue: number;
   countTransaction: number;
   byMethod: Summary["byMethod"];
@@ -44,7 +43,7 @@ type ItemGroup = {
   latestPaidAt: string | null;
 };
 
-type ApiResp =
+export type ApiResp =
   | {
       params: ApiParams;
       summary: Summary;
@@ -60,7 +59,7 @@ type ApiResp =
       items: ItemGroup[];
     };
 
-type PerDate = {
+export type PerDate = {
   date: string;
   quota: number;
   reserved: number;
@@ -69,7 +68,7 @@ type PerDate = {
   isPeakSeason: boolean;
 };
 
-type RoomReport = {
+export type RoomReport = {
   roomTypeId: number;
   roomName: string;
   quota: number;
@@ -77,7 +76,7 @@ type RoomReport = {
   perDate: PerDate[];
 };
 
-type Property = { id: number; name: string; city: string };
-type RoomType = { id: number; roomName: string };
+export type Property = { id: number; name: string; city: string };
+export type RoomType = { id: number; roomName: string };
 
-type ApiRespProperty = { items: RoomReport[] };
+export type ApiRespProperty = { items: RoomReport[] };

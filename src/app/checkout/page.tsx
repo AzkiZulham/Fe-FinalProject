@@ -1,7 +1,8 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { axios } from "@/lib/axios";
 import { useAuth } from "@/context/authContext";
 import StatusBadge from "@/components/statusBadge";
@@ -39,6 +40,12 @@ type OrderDetail = {
 };
 
 export default function CheckoutPage() {
+  return (
+    <CheckoutContent />
+  );
+}
+
+function CheckoutContent() {
   const sp = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();

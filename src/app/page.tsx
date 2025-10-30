@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Hero from "@/components/hero";
 import PropertyList from "@/components/propertyList";
 import Footer from "@/components/footer";
@@ -39,14 +39,16 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="pt-0.5 relative">
-      <LocationModal onLocationDetected={handleLocationDetected} />
-      <Hero />
-      <div className="relative -mt-32 md:-mt-40 lg:-mt-48 z-[9999]">
-        <BookingFilter noHeroMargin={true} location={location} />
-      </div>
-      <PropertyList limit={6} />
-      <Footer />
-    </main>
+    <Suspense fallback={<div>Loading...</div>}>
+      <main className="pt-0.5 relative">
+        <LocationModal onLocationDetected={handleLocationDetected} />
+        <Hero />
+        <div className="relative -mt-32 md:-mt-40 lg:-mt-48 z-[9999]">
+          <BookingFilter noHeroMargin={true} location={location} />
+        </div>
+        <PropertyList limit={6} />
+        <Footer />
+      </main>
+    </Suspense>
   );
 }

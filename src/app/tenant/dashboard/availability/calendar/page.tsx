@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { Calendar, dateFnsLocalizer, View } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { id } from "date-fns/locale";
@@ -47,6 +49,18 @@ interface ApiPeakSeason {
 }
 
 export default function PeakSeasonCalendar({
+  roomTypeId,
+}: {
+  roomTypeId: number;
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PeakSeasonCalendarContent roomTypeId={roomTypeId} />
+    </Suspense>
+  );
+}
+
+function PeakSeasonCalendarContent({
   roomTypeId,
 }: {
   roomTypeId: number;

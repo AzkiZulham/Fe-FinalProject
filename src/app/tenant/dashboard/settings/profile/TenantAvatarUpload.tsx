@@ -23,6 +23,12 @@ interface Props {
 }
 
 export default function TenantAvatarUpload({ tenantData, setTenantData }: Props) {
+  return (
+    <TenantAvatarUploadContent tenantData={tenantData} setTenantData={setTenantData} />
+  );
+}
+
+function TenantAvatarUploadContent({ tenantData, setTenantData }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);

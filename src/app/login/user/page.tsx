@@ -1,5 +1,8 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import LoginFormClient from "../user/loginFormClient";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "Login User — StayFinder",
@@ -25,10 +28,12 @@ export default function UserLoginPage() {
           </div>
 
           {/* Form */}
-          <LoginFormClient
-          role="USER"
-          redirectOnSuccess="/"
-        />
+          <Suspense fallback={<div>Loading...</div>}>
+            <LoginFormClient
+              role="USER"
+              redirectOnSuccess="/"
+            />
+          </Suspense>
         </div>
     </main>
   );

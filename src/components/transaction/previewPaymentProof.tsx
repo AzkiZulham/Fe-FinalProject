@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
+
+import Image from "next/image";
 
 const imageUrl = (rel?: string | null) => {
   if (!rel) return "";
@@ -27,11 +28,15 @@ export default function PaymentProofPreview({
       className="block"
       title="Buka gambar"
     >
-      <img
-        src={url}
-        alt={alt}
-        className="max-h-80 w-auto rounded-md border object-contain mx-auto"
-      />
+      <div className="relative w-full max-w-md h-80 mx-auto border rounded-md overflow-hidden">
+        <Image
+          src={url}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, 400px"
+          className="object-contain"
+        />
+      </div>
     </a>
   );
 }

@@ -21,7 +21,7 @@ export default function LoginFormClient({
       } else if (error === "email_registered") {
         toast.error("Email ini sudah terdaftar. Silakan login dengan akun yang sama.");
       }
-    }, 200); 
+    }, 200);
 
     return () => clearTimeout(timeout);
   }, [error]);
