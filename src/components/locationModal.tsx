@@ -33,7 +33,7 @@ export default function LocationModal({
 
           try {
             const res = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
+              `${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/reverse?lat=${latitude}&lng=${longitude}`
             );
             const data = await res.json();
 

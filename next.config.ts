@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -9,22 +10,17 @@ const nextConfig = {
         hostname: "images.unsplash.com",
       },
       {
-        protocol: "http",
-        hostname: "localhost",
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8000",
+        protocol: API_URL.startsWith("https") ? "https" : "http",
+        hostname: new URL(API_URL).hostname,
       },
     ],
-    domains: ['localhost'],
+    domains: [new URL(API_URL).hostname, "images.unsplash.com"],
   },
   async rewrites() {
     return [
       {
-        source: '/uploads/:path*',
-        destination: 'http://localhost:8000/uploads/:path*',
+        source: "/uploads/:path*",
+        destination: `${API_URL}/uploads/:path*`,
       },
     ];
   },
