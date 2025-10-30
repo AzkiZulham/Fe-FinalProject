@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 type GroupBy = "property" | "transaction" | "user";
 type SortBy = "revenue" | "date";
 type Order = "asc" | "desc";
