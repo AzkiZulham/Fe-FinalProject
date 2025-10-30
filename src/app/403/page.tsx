@@ -3,9 +3,11 @@
 
 import Link from "next/link";
 import { Lock } from "lucide-react";
+import { Suspense } from "react";
 
 export default function ForbiddenPage() {
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4 text-center">
       {/* Card container */}
       <div className="relative max-w-md w-full bg-white dark:bg-gray-800 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl p-10 overflow-hidden">
@@ -66,5 +68,6 @@ export default function ForbiddenPage() {
         }
       `}</style>
     </main>
+    </Suspense>
   );
 }
