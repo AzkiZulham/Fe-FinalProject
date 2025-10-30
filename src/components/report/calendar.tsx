@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 function Legend() {
   return (
     <div className="flex items-center gap-4">
