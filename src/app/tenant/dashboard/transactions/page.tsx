@@ -28,9 +28,6 @@ export default function TenantTransactionsPage() {
 
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [detail, setDetail] = useState<TenantOrderDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailErr, setDetailErr] = useState<string | null>(null);
 
   const page = Number(sp.get("page") || 1);
   const limit = Number(sp.get("limit") || 10);
@@ -76,21 +73,6 @@ export default function TenantTransactionsPage() {
   const openDetail = async (id: number) => {
     setSelectedId(id);
     setOpen(true);
-    setDetail(null);
-    setDetailErr(null);
-    setDetailLoading(true);
-    try {
-      const res = await axios.get<{ message: string; data: TenantOrderDetail }>(
-        `/api/transaction/tenant/orders/${id}`
-      );
-      setDetail(res.data.data);
-    } catch (e: any) {
-      setDetailErr(
-        e?.response?.data?.error || e.message || "Gagal memuat detail"
-      );
-    } finally {
-      setDetailLoading(false);
-    }
   };
 
   useEffect(() => {
