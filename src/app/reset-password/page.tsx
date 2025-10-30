@@ -62,9 +62,7 @@ export default function ResetPasswordPage() {
 
       try {
         const res = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-          }/api/auth/check-reset-token?token=${token}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-reset-token?token=${token}`
         );
         const data = await res.json();
         setTokenChecked(res.ok && data.valid ? "valid" : "invalid");
@@ -140,9 +138,7 @@ export default function ResetPasswordPage() {
             onSubmit={async (values, { setSubmitting }) => {
               try {
                 const res = await fetch(
-                  `${
-                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-                  }/api/auth/reset-password`,
+                  `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`,
                   {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
