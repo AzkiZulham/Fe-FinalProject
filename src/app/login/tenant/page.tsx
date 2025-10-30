@@ -1,5 +1,8 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import LoginFormClient from "../tenant/loginFormClient";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "Login Tenant — StayFinder",
@@ -26,10 +29,12 @@ export default function TenantLoginPage() {
         </div>
 
         {/* Form */}
-        <LoginFormClient
-          role="TENANT"
-          redirectOnSuccess="/tenant/dashboard"
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <LoginFormClient
+            role="TENANT"
+            redirectOnSuccess="/tenant/dashboard"
+          />
+        </Suspense>
       </div>
     </main>
   );

@@ -8,6 +8,8 @@ import PropertyList from "@/components/properties/propertyList";
 import Pagination from "@/components/ui/pagination";
 import Footer from "@/components/footer";
 
+export const dynamic = 'force-dynamic';
+
 interface CatalogProperty {
   id: number;
   name: string;

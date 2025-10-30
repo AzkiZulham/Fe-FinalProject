@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import type { DatesSetArg, EventContentArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -154,79 +156,81 @@ export default function PropertyReportPage() {
   };
 
   return (
-    <ProtectedPage role="TENANT">
-      <div className="p-4 space-y-4">
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Availability Calendar</CardTitle>
-            <span className="text-sm text-muted-foreground">
-              {loading ? "Memuat..." : ""}
-            </span>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-6 gap-3">
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="property">Property</Label>
-                <select
-                  id="property"
-                  value={propertyId}
-                  onChange={(e) => setPropertyId(e.target.value)}
-                  className="border rounded-md px-2 py-2 text-sm"
-                >
-                  {properties.length === 0 && (
-                    <option value="">(Tidak ada properti)</option>
-                  )}
-                  {properties.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — {p.city}
-                    </option>
-                  ))}
-                </select>
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedPage role="TENANT">
+        <div className="p-4 space-y-4">
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>Availability Calendar</CardTitle>
+              <span className="text-sm text-muted-foreground">
+                {loading ? "Memuat..." : ""}
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-6 gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="property">Property</Label>
+                  <select
+                    id="property"
+                    value={propertyId}
+                    onChange={(e) => setPropertyId(e.target.value)}
+                    className="border rounded-md px-2 py-2 text-sm"
+                  >
+                    {properties.length === 0 && (
+                      <option value="">(Tidak ada properti)</option>
+                    )}
+                    {properties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — {p.city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="room">Room Type</Label>
+                  <select
+                    id="room"
+                    value={roomTypeId}
+                    onChange={(e) => setRoomTypeId(e.target.value)}
+                    className="border rounded-md px-2 py-2 text-sm"
+                    disabled={!propertyId}
+                  >
+                    <option value="">Pilih Room Type</option>
+                    {roomTypes.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.roomName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-3 flex items-end gap-4 text-xs text-muted-foreground">
+                  <legend />
+                </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="room">Room Type</Label>
-                <select
-                  id="room"
-                  value={roomTypeId}
-                  onChange={(e) => setRoomTypeId(e.target.value)}
-                  className="border rounded-md px-2 py-2 text-sm"
-                  disabled={!propertyId}
-                >
-                  <option value="">Pilih Room Type</option>
-                  {roomTypes.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.roomName}
-                    </option>
-                  ))}
-                </select>
+              <div className="[&_.fc-daygrid-day-number]:text-xs">
+                <FullCalendar
+                  ref={calRef as any}
+                  plugins={[dayGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  height="auto"
+                  headerToolbar={{
+                    left: "prev,next today",
+                    center: "title",
+                    right: "",
+                  }}
+                  datesSet={handleDatesSet}
+                  events={events}
+                  eventContent={renderEventContent}
+                  displayEventTime={false}
+                />
               </div>
-
-              <div className="md:col-span-3 flex items-end gap-4 text-xs text-muted-foreground">
-                <legend />
-              </div>
-            </div>
-
-            <div className="[&_.fc-daygrid-day-number]:text-xs">
-              <FullCalendar
-                ref={calRef as any}
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                height="auto"
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "",
-                }}
-                datesSet={handleDatesSet}
-                events={events}
-                eventContent={renderEventContent}
-                displayEventTime={false}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </ProtectedPage>
+            </CardContent>
+          </Card>
+        </div>
+      </ProtectedPage>
+    </Suspense>
   );
 }
