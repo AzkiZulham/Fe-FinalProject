@@ -55,9 +55,10 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, isSelected, checkIn
     }
   }
 
-  const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const selectedDate = checkInDate || checkOutDate;
+  const referenceDate = selectedDate || new Date();
+  const currentMonthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+  const currentMonthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
 
   return (
     <div className={`bg-white rounded-2xl shadow-lg border-2 p-6 transition-all duration-300 hover:shadow-xl ${
