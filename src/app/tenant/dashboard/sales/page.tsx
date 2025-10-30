@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Stat from "@/components/report/stat";
 import ProtectedPage from "@/components/protectedPage";
+import { ApiResp, GroupBy, Order, SortBy } from "@/lib/report/type";
 
 const money = (n: number) =>
   new Intl.NumberFormat("id-ID", {

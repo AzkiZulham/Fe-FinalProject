@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
@@ -11,6 +11,12 @@ import { axios } from "@/lib/axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import ProtectedPage from "@/components/protectedPage";
+import {
+  ApiRespProperty,
+  Property,
+  RoomReport,
+  RoomType,
+} from "@/lib/report/type";
 
 export default function PropertyReportPage() {
   const calRef = useRef<FullCalendar | null>(null);
