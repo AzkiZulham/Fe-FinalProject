@@ -44,22 +44,6 @@ type ItemGroup = {
   latestPaidAt: string | null;
 };
 
-type ApiResp =
-  | {
-      params: ApiParams;
-      summary: Summary;
-      total: number;
-      totalPages: number;
-      items: ItemTxn[];
-    }
-  | {
-      params: ApiParams;
-      summary: Summary;
-      total: number;
-      totalPages: number;
-      items: ItemGroup[];
-    };
-
 type PerDate = {
   date: string;
   quota: number;
@@ -76,8 +60,3 @@ type RoomReport = {
   property: { id: number; name: string; city: string };
   perDate: PerDate[];
 };
-
-type Property = { id: number; name: string; city: string };
-type RoomType = { id: number; roomName: string };
-
-type ApiRespProperty = { items: RoomReport[] };
