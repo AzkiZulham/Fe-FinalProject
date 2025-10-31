@@ -68,11 +68,6 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
             </h3>
             {property.rating && (
               <div className="flex items-center gap-1 text-sm text-gray-600">
-                {property.totalTransactions && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Dipesan {property.totalTransactions} kali
-                  </div>
-                )}
               </div>
             )}
           </div>
