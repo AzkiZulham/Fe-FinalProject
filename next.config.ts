@@ -13,8 +13,11 @@ const nextConfig: NextConfig = {
         protocol: API_URL.startsWith("https") ? "https" : "http",
         hostname: new URL(API_URL).hostname,
       },
+      {
+        protocol: "https",
+        hostname: "blob.vercel-storage.com",
+      },
     ],
-    domains: [new URL(API_URL).hostname, "images.unsplash.com"],
   },
   async rewrites() {
     return [
