@@ -52,11 +52,11 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
             <div
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 isAvailable
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
+                  ? ""
+                  : ""
               }`}
             >
-              {isAvailable ? "Tersedia" : "Penuh"}
+              {isAvailable ? "" : ""}
             </div>
           </div>
         </div>
@@ -93,12 +93,6 @@ function PropertyCard({ property }: { property: CatalogProperty }) {
                 Rp {property.price?.toLocaleString("id-ID") || "N/A"}
               </span>
               <span className="text-xs text-gray-500">per malam</span>
-            </div>
-
-            <div className="text-right">
-              <div className="text-sm text-gray-600">
-                {property.availableRooms || 0} kamar tersedia
-              </div>
             </div>
           </div>
         </div>
