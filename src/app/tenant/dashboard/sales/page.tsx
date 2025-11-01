@@ -242,12 +242,14 @@ export default function SalesReportPage() {
                   {items.map((it: any, i: number) =>
                     groupBy === "transaction" ? (
                       <tr key={i} className="border-t">
-                        <td className="px-3 py-2">{`ORD-${it.id}-${new Date(
+                        <td className="px-3 py-2">{`ORD-${it.id}-${
                           it.createdAt
-                        )
-                          .toISOString()
-                          .slice(0, 10)
-                          .replace(/-/g, "")}`}</td>
+                            ? new Date(it.createdAt)
+                                .toISOString()
+                                .slice(0, 10)
+                                .replace(/-/g, "")
+                            : "N/A"
+                        }`}</td>
                         <td className="px-3 py-2">
                           {it.paidAt
                             ? new Date(it.paidAt).toLocaleString()
