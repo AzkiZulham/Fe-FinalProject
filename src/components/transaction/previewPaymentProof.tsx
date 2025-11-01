@@ -4,6 +4,7 @@ import Image from "next/image";
 
 const imageUrl = (rel?: string | null) => {
   if (!rel) return "";
+  if (rel.startsWith("http")) return rel; // Already a full URL (e.g., Vercel Blob)
   return `${process.env.NEXT_PUBLIC_API_URL}${
     rel.startsWith("/") ? "" : "/"
   }${rel}`;
