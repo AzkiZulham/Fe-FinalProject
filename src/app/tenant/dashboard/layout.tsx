@@ -18,6 +18,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Newspaper,
+  LayoutDashboard,
 } from "lucide-react";
 import ProtectedPage from "@/components/protectedPage";
 import { useRouter } from "next/navigation";
@@ -40,7 +41,10 @@ type MenuSection = {
 const sidebarSections: MenuSection[] = [
   {
     label: "MAIN MENU",
-    items: [{ name: "Dashboard", href: "/tenant/dashboard", icon: Home }],
+    items: [
+      { name: "Home", href: "/", icon: Home },
+      { name: "Dashboard", href: "/tenant/dashboard", icon: LayoutDashboard }
+    ],
   },
   {
     label: "MANAGEMENT",
@@ -98,6 +102,9 @@ const useActive = () => {
   const pathname = usePathname();
   return (href?: string) => {
     if (!href) return false;
+    if (href === "/") {
+      return pathname === "/";
+    }
     if (href === "/tenant/dashboard") {
       return pathname === "/tenant/dashboard";
     }

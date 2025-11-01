@@ -10,6 +10,7 @@ export default function NavbarWrapper() {
     "/reset-password",
     "/verify-password",
     "/forgot-password",
+    "/about-me",
     "/404",
     "/403",
     "/500",

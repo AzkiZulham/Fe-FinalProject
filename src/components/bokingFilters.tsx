@@ -274,7 +274,7 @@ export default function BookingFilter({
       <button
         onClick={handleSearch}
         disabled={!city}
-        className="font-semibold px-10 py-4 rounded-xl bg-gradient-to-r from-[#2f567a] to-blue-700 hover:scale-105 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="font-semibold px-10 py-4 rounded-xl bg-gradient-to-r from-[#2f567a] to-blue-700 hover:scale-105 text-white cursor-pointer touch-manipulation transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
         <Search className="w-5 h-5" />
         Cari

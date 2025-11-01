@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { Property, RoomType } from "@/components/properties/types";
 import { useAuth } from "@/context/authContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface Props {
   property: Property;
@@ -42,6 +42,7 @@ const BookingSidebar: React.FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [qty, setQty] = useState(1);
@@ -70,7 +71,12 @@ const BookingSidebar: React.FC<Props> = ({
     setAdults(1);
     setChildren(0);
     setQty(1);
+    setBooking(false); 
   }, [selectedRoom]);
+
+  React.useEffect(() => {
+    setBooking(false); 
+  }, [pathname]);
 
   React.useEffect(() => {
     if (!selectedRoom || !checkInDate || !checkOutDate) {
@@ -175,13 +181,10 @@ const BookingSidebar: React.FC<Props> = ({
       return;
     }
 
-    try {
-      setBooking(true);
-
-      Promise.resolve(onBook(selectedRoom, checkInDate, checkOutDate, qty));
-    } finally {
+    setBooking(true);
+    Promise.resolve(onBook(selectedRoom, checkInDate, checkOutDate, qty)).finally(() => {
       setBooking(false);
-    }
+    });
   };
 
   const formatDate = (date: Date) => {

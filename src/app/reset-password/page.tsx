@@ -187,7 +187,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -250,7 +250,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
                     >
                       {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -266,7 +266,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mb-7 rounded-4xl bg-[#2f567a] px-4 py-2 font-medium text-white shadow hover:bg-[#23425e] transition disabled:opacity-50"
+                  className="w-full mb-7 rounded-4xl bg-[#2f567a] px-4 py-2 font-medium cursor-pointer text-white shadow hover:bg-[#23425e] transition disabled:opacity-50"
                 >
                   {isSubmitting ? "Menyimpan..." : "Simpan Password Baru"}
                 </button>

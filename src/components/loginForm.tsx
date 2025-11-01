@@ -46,7 +46,6 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
   const [checkedEmail, setCheckedEmail] = useState<string>("");
   const [resendDisabled, setResendDisabled] = useState(false);
 
-  // Check email status on blur
   const checkEmailStatus = async (email: string) => {
     if (!email || !Yup.string().email().isValidSync(email)) return;
 
@@ -66,13 +65,11 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
         setCheckedEmail(email);
         setShowVerificationModal(true);
       }
-      // If email exists and is verified with valid token, proceed normally (no modal)
     } catch (err) {
       console.error("Email check error:", err);
     }
   };
 
-  // Resend verification email
   const handleResendVerification = async () => {
     if (!checkedEmail || resendDisabled) return;
 
@@ -97,7 +94,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
       setShowVerificationModal(false);
     } catch (err: unknown) {
       toast.error((err as Error).message || "Gagal mengirim ulang verifikasi");
-      setResendDisabled(false); // Re-enable if error
+      setResendDisabled(false);
     } finally {
       setIsResending(false);
     }
@@ -212,7 +209,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 dark:text-gray-400"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -234,7 +231,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full inline-flex justify-center items-center bg-[#2f567a] text-white px-4 py-3 rounded-4xl font-semibold hover:bg-[#3a6b97] transition disabled:opacity-60"
+                className="w-full inline-flex justify-center items-center bg-[#2f567a] text-white px-4 py-3 rounded-4xl font-semibold hover:bg-[#3a6b97] cursor-pointer transition disabled:opacity-60"
               >
                 {isSubmitting ? "Memproses..." : "Masuk"}
               </button>
@@ -268,7 +265,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               onClick={() =>
                 (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`)
               }
-              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition shadow-sm"
             >
               <FaGoogle className="w-5 h-5" />
               Masuk dengan Google
@@ -278,7 +275,7 @@ export default function LoginForm({ role, redirectOnSuccess }: Props) {
               onClick={() =>
                 (window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook`)
               }
-              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-2.5 rounded-4xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition shadow-sm"
             >
               <FaFacebook className="w-5 h-5" />
               Masuk dengan Facebook

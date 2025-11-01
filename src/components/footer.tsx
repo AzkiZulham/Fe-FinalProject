@@ -37,7 +37,7 @@ export default function Footer() {
                       : item === "Properti"
                       ? "/property"
                       : item === "Tentang Kami"
-                      ? "/abaout-me"
+                      ? "/about-me"
                       : ""}
                   className="transition-colors duration-300 hover:text-[#7ba2c5]"
                 >

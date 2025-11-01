@@ -109,7 +109,7 @@ export default function ForgotPasswordClient() {
               <button
                 type="submit"
                 disabled={isSubmitting || isCooldown}
-                className="w-full bg-[#2f567a] text-white px-4 py-3 rounded-4xl font-semibold hover:bg-[#3a6b97] transition disabled:opacity-60"
+                className="w-full bg-[#2f567a] text-white px-4 py-3 rounded-4xl cursor-pointerfont-semibold hover:bg-[#3a6b97] transition disabled:opacity-60"
               >
                 {isSubmitting
                   ? "Mengirim..."

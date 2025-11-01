@@ -112,7 +112,7 @@ export default function RegisterTenant() {
               <button
                 type="submit"
                 disabled={isSubmitting || isEmailAvailable === false}
-                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm hover:scale-105 cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 touch-manipulation disabled:cursor-not-allowed"
               >
                 Lanjutkan dengan Email
               </button>

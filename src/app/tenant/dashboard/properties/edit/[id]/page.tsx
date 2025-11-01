@@ -15,6 +15,7 @@ type RoomType = {
   price: number;
   description?: string;
   roomImg: (File | string)[];
+  deletedImages?: string[]; 
   quota?: number;
   adultQty?: number;
   childQty?: number;
@@ -736,8 +737,13 @@ export default function EditPropertyPage() {
                                             <button
                                               type="button"
                                               onClick={() => {
+                                                const imgToDelete = values.roomTypes[index].roomImg[imgIndex];
                                                 const newImages = values.roomTypes[index].roomImg.filter((_, i: number) => i !== imgIndex);
                                                 setFieldValue(`roomTypes.${index}.roomImg`, newImages);
+                                                if (typeof imgToDelete === 'string') {
+                                                  const currentDeleted = values.roomTypes[index].deletedImages || [];
+                                                  setFieldValue(`roomTypes.${index}.deletedImages`, [...currentDeleted, imgToDelete]);
+                                                }
                                               }}
                                               className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                                             >

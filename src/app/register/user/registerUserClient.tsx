@@ -94,7 +94,7 @@ export default function RegisterUser() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg"
+                className="w-full py-3 rounded-xl text-white bg-[#2f567a] hover:bg-[#3a6b97] font-semibold text-sm hover-scale-105 cursor-pointer transition-all touch-manipulation  duration-300 shadow-md hover:shadow-lg"
               >
                 Daftar sekarang
               </button>
@@ -124,7 +124,7 @@ export default function RegisterUser() {
             onClick={() => {
               window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google?role=USER&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
             }}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
+            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-shadow shadow-md hover:shadow-lg"
           >
             <FaGoogle className="w-5 h-5" />
             Daftar dengan Google
@@ -134,7 +134,7 @@ export default function RegisterUser() {
             onClick={() => {
               window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/facebook?role=USER&redirect_uri=${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`;
             }}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow shadow-md hover:shadow-lg"
+            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-shadow shadow-md hover:shadow-lg"
           >
             <FaFacebook className="w-5 h-5" />
             Daftar dengan Facebook

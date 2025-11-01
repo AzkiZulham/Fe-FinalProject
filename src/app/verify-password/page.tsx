@@ -184,7 +184,7 @@ export default function VerifyPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(prev => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer transition-colors p-1"
               >
                 {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
               </button>
@@ -264,7 +264,7 @@ export default function VerifyPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(prev => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer transition-colors p-1"
               >
                 {showConfirmPassword ? <EyeOff size={22} /> : <Eye size={22} />}
               </button>
@@ -315,7 +315,7 @@ export default function VerifyPasswordPage() {
             disabled={loading || !password || !confirmPassword || password !== confirmPassword || !validateAllCriteria(password)}
             whileHover={{ scale: loading ? 1 : 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full bg-gradient-to-r from-[#2f567a] to-[#3a6b97] hover:from-[#3a6b97] hover:to-[#2f567a] text-white font-bold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-[#2f567a] to-[#3a6b97] hover:from-[#3a6b97] hover:to-[#2f567a] text-white cursor-pointer font-bold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

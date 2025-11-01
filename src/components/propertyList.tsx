@@ -219,7 +219,7 @@ export default function PropertyList({
       <div className="text-center mt-15">
         <button
           onClick={() => (window.location.href = "/property")}
-          className="px-6 py-3 bg-[#2f567a] text-white rounded-full hover:bg-[#7ba2c5] transition-colors"
+          className="px-6 py-3 bg-[#2f567a] text-white rounded-full transition-all hover:scale-105 duration-300 active:scale-95 touch-manipulation cursor-pointer"
         >
           Lihat Semua Properti
         </button>
