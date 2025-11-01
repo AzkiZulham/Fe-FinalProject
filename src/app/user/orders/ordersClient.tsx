@@ -167,7 +167,12 @@ export default function OrdersClient() {
               {!loading &&
                 data.items.map((o) => (
                   <tr key={o.id}>
-                    <td className="px-4 py-3 font-medium">{o.orderNumber}</td>
+                    <td className="px-4 py-3 font-medium">{`ORD-${
+                      o.id
+                    }-${new Date(o.createdAt)
+                      .toISOString()
+                      .slice(0, 10)
+                      .replace(/-/g, "")}`}</td>
                     <td className="px-4 py-3">
                       <div className="font-medium">{o.property?.name}</div>
                       <div className="text-xs text-gray-500">

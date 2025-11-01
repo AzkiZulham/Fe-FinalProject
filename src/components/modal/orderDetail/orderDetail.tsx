@@ -69,7 +69,10 @@ export default function OrderDetailBody({ id }: { id: number }) {
   if (err) return <p className="text-rose-600">{err}</p>;
   if (!order) return null;
 
-  const orderNumber = `ORD-${order.id}-${new Date(order.createdAt).getTime()}`;
+  const orderNumber = `ORD-${order.id}-${new Date(order.createdAt)
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, "")}`;
 
   const showActions = order.status === "WAITING_FOR_PAYMENT";
 

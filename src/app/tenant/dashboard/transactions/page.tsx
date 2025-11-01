@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -167,7 +167,10 @@ export default function TenantTransactionsPage() {
                 data.items.map((o: TenantOrderItem) => (
                   <tr key={o.id}>
                     <td className="px-3 sm:px-4 py-3 font-medium break-words">
-                      {o.orderNumber}
+                      {`ORD-${o.id}-${new Date(o.createdAt)
+                        .toISOString()
+                        .slice(0, 10)
+                        .replace(/-/g, "")}`}
                     </td>
                     <td className="px-3 sm:px-4 py-3">
                       <div className="font-medium">
