@@ -40,9 +40,7 @@ type OrderDetail = {
 };
 
 export default function CheckoutPage() {
-  return (
-    <CheckoutContent />
-  );
+  return <CheckoutContent />;
 }
 
 function CheckoutContent() {
@@ -55,6 +53,8 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [midtransLoading, setMidtransLoading] = useState(false);
 
   const fetchDetail = async () => {
     if (!transactionId) return;
@@ -77,7 +77,12 @@ function CheckoutContent() {
   }, [user, transactionId]);
 
   const payWithMidtransClick = async () => {
-    await payWithMidtrans(transactionId);
+    setMidtransLoading(true);
+    try {
+      await payWithMidtrans(transactionId);
+    } finally {
+      setMidtransLoading(false);
+    }
   };
 
   if (!transactionId) {
@@ -158,21 +163,32 @@ function CheckoutContent() {
                 )}
 
                 <button
-                  onClick={() =>
-                    router.push(`/checkout/transfer?transactionId=${order.id}`)
+                  onClick={() => {
+                    setTransferLoading(true);
+                    router.push(`/checkout/transfer?transactionId=${order.id}`);
+                  }}
+                  disabled={
+                    order.status !== "WAITING_FOR_PAYMENT" ||
+                    transferLoading ||
+                    midtransLoading
                   }
-                  disabled={order.status !== "WAITING_FOR_PAYMENT"}
                   className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white opacity-90 disabled:opacity-50 cursor-pointer"
                 >
-                  TRANSFER Bank (Upload Bukti)
+                  {transferLoading
+                    ? "Memproses..."
+                    : "TRANSFER Bank (Upload Bukti)"}
                 </button>
 
                 <button
                   onClick={payWithMidtransClick}
-                  disabled={order.status !== "WAITING_FOR_PAYMENT"}
+                  disabled={
+                    order.status !== "WAITING_FOR_PAYMENT" ||
+                    midtransLoading ||
+                    transferLoading
+                  }
                   className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white opacity-90 disabled:opacity-50 cursor-pointer"
                 >
-                  Bayar via MIDTRANS
+                  {midtransLoading ? "Memproses..." : "Bayar via MIDTRANS"}
                 </button>
 
                 {order.roomType?.property?.destinationBank &&
