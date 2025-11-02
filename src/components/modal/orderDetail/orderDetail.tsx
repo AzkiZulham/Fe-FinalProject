@@ -15,6 +15,8 @@ export default function OrderDetailBody({ id }: { id: number }) {
   const [err, setErr] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [midtransLoading, setMidtransLoading] = useState(false);
 
   const fetchOne = async () => {
     setLoading(true);
@@ -53,7 +55,12 @@ export default function OrderDetailBody({ id }: { id: number }) {
   }, [order]);
 
   const onMidtrans = async () => {
-    await payWithMidtrans(id);
+    setMidtransLoading(true);
+    try {
+      await payWithMidtrans(id);
+    } finally {
+      setMidtransLoading(false);
+    }
   };
 
   const copy = async (text: string) => {
@@ -150,21 +157,26 @@ export default function OrderDetailBody({ id }: { id: number }) {
               <div className="space-y-2">
                 <button
                   onClick={() => {
+                    setTransferLoading(true);
                     setSelectedMethod("TRANSFER");
                     setShowUpload(true);
                   }}
+                  disabled={transferLoading || midtransLoading}
                   className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  TRANSFER Bank (Upload Bukti)
+                  {transferLoading
+                    ? "Memproses..."
+                    : "TRANSFER Bank (Upload Bukti)"}
                 </button>
                 <button
                   onClick={() => {
                     setSelectedMethod("MIDTRANS");
                     onMidtrans();
                   }}
+                  disabled={midtransLoading || transferLoading}
                   className="w-full rounded-md border border-blue-600 text-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Bayar via MIDTRANS
+                  {midtransLoading ? "Memproses..." : "Bayar via MIDTRANS"}
                 </button>
               </div>
             )}
