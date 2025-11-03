@@ -335,6 +335,31 @@ function PeakSeasonCalendarContent({
     );
   };
 
+  const dayPropGetter = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+    const adjustedSelected = selectedDates.slice(0, -1).map(day => {
+      const nd = new Date(day);
+      nd.setHours(0,0,0,0);
+      return nd.getTime();
+    });
+  
+    const isSelected = adjustedSelected.includes(d.getTime());
+  
+    if (isSelected) {
+      return {
+        style: {
+          backgroundColor: '#dbeafe',
+          border: '2px solid #3b82f6',
+          borderRadius: '6px',
+        },
+      };
+    }
+  
+    return {};
+  };
+  
+
   const CustomToolbar = () => (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
       <div className="flex items-center gap-2"></div>
@@ -460,6 +485,7 @@ function PeakSeasonCalendarContent({
                 onSelectSlot={handleSelectSlot}
                 onSelectEvent={handleSelectEvent}
                 eventPropGetter={eventStyleGetter}
+                dayPropGetter={dayPropGetter}
                 popup
                 components={{
                   toolbar: CustomToolbar,
@@ -544,23 +570,17 @@ function PeakSeasonCalendarContent({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                      Atur Harga untuk {selectedDates.length} Hari
+                      Atur Harga untuk {selectedDates.length - 1} Hari
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       {format(selectedDates[0], "dd MMM yyyy")}
                       {selectedDates.length > 1 &&
                         ` - ${format(
-                          selectedDates[selectedDates.length - 1],
+                          new Date(selectedDates[selectedDates.length - 1].getTime() - 1 * 24 * 60 * 60 * 1000),
                           "dd MMM yyyy"
                         )}`}
                     </p>
                   </div>
-                  <button
-                    onClick={handleCancel}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
                 </div>
 
                 <div className="space-y-4">
@@ -660,14 +680,14 @@ function PeakSeasonCalendarContent({
                     <button
                       onClick={handleApplyPrice}
                       disabled={isApplying}
-                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isApplying ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
                     <button
                       onClick={handleCancel}
                       disabled={isApplying}
-                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Batal
                     </button>
