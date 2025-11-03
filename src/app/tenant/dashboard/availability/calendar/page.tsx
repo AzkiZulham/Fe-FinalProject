@@ -87,6 +87,7 @@ function PeakSeasonCalendarContent({
   const [selectionKey, setSelectionKey] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<PeakSeasonEvent | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const label = format(currentDate, "MMMM yyyy", { locale: id });
 
@@ -301,6 +302,7 @@ function PeakSeasonCalendarContent({
     if (!eventToDelete || !eventToDelete.id) return;
 
     try {
+      setIsDeleting(true);
       await axios.delete(`/api/peak-season/${eventToDelete.id}`);
       await fetchData();
       setShowDeleteModal(false);
@@ -308,6 +310,8 @@ function PeakSeasonCalendarContent({
     } catch (err) {
       console.error("Failed to delete:", err);
       alert("Gagal menghapus. Silakan coba lagi.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -793,16 +797,18 @@ function PeakSeasonCalendarContent({
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                 <button
                   onClick={handleDelete}
-                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+                  disabled={isDeleting}
+                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Hapus
+                  {isDeleting ? "Menghapus..." : "Hapus"}
                 </button>
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setEventToDelete(null);
                   }}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Batal
                 </button>

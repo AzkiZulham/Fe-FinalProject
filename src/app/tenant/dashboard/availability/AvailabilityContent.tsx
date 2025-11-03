@@ -105,10 +105,12 @@ export default function AvailabilityContent() {
     if (selectedPropertyId && selectedRoomTypeId) {
       setIsProcessing(true);
       try {
-        router.push(`/tenant/dashboard/availability/${selectedPropertyId}/${selectedRoomTypeId}`);
+        setTimeout(() => {
+          router.push(`/tenant/dashboard/availability/${selectedPropertyId}/${selectedRoomTypeId}`);
+          setIsProcessing(false);
+        }, 500);
       } catch (error) {
         console.error("Navigation error:", error);
-      } finally {
         setIsProcessing(false);
       }
     }
