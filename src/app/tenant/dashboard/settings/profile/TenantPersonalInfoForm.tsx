@@ -25,7 +25,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { TenantData } from "./TenantTypes";
 import ProtectedPage from "@/components/protectedPage";
@@ -40,11 +40,16 @@ export default function TenantPersonalInfoForm({
   tenantData,
   setTenantData,
 }: Props) {
+  const [formData, setFormData] = useState<TenantData>(tenantData);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setFormData(tenantData);
+  }, [tenantData]);
 
   if (!tenantData) {
     return (
@@ -65,7 +70,7 @@ export default function TenantPersonalInfoForm({
   };
 
   const handleChange = (field: keyof TenantData, value: string) => {
-    setTenantData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -75,13 +80,13 @@ export default function TenantPersonalInfoForm({
     setIsUpdating(true);
     try {
       const payload = {
-        username: tenantData.username || "",
-        email: tenantData.email || "",
-        phoneNumber: tenantData.phoneNumber || "",
-        birthDate: tenantData.birthDate
-          ? new Date(tenantData.birthDate).toISOString()
+        username: formData.username || "",
+        email: formData.email || "",
+        phoneNumber: formData.phoneNumber || "",
+        birthDate: formData.birthDate
+          ? new Date(formData.birthDate).toISOString()
           : null,
-        gender: tenantData.gender || "",
+        gender: formData.gender || "",
       };
 
       const res = await axios.put('/api/tenant/update-profile', payload);
@@ -265,18 +270,18 @@ export default function TenantPersonalInfoForm({
             </Label>
             <Input
               id="username"
-              value={tenantData.username || ""}
+              value={formData.username || ""}
               onChange={(e) => handleChange("username", e.target.value)}
               onFocus={() => handleFieldFocus("username")}
               onBlur={() => handleFieldBlur("username")}
               onTouchStart={() => handleTouchStart("username")}
               onTouchEnd={handleTouchEnd}
               placeholder={
-                tenantData.username ? "" : "Masukkan nama lengkap Anda"
+                formData.username ? "" : "Masukkan nama lengkap Anda"
               }
-              className={getFieldClassName(tenantData.username, "username")}
+              className={getFieldClassName(formData.username, "username")}
             />
-            {tenantData.username ? (
+            {formData.username ? (
               <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Data terisi
@@ -298,18 +303,18 @@ export default function TenantPersonalInfoForm({
             <Input
               id="email"
               type="email"
-              value={tenantData.email || ""}
+              value={formData.email || ""}
               onChange={(e) => handleChange("email", e.target.value)}
               onFocus={() => handleFieldFocus("email")}
               onBlur={() => handleFieldBlur("email")}
               onTouchStart={() => handleTouchStart("email")}
               onTouchEnd={handleTouchEnd}
               placeholder={
-                tenantData.email ? "" : "Masukkan alamat email aktif"
+                formData.email ? "" : "Masukkan alamat email aktif"
               }
-              className={getFieldClassName(tenantData.email, "email")}
+              className={getFieldClassName(formData.email, "email")}
             />
-            {tenantData.email ? (
+            {formData.email ? (
               <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Data terisi
@@ -330,16 +335,16 @@ export default function TenantPersonalInfoForm({
             </Label>
             <Input
               id="phoneNumber"
-              value={tenantData.phoneNumber || ""}
+              value={formData.phoneNumber || ""}
               onChange={(e) => handleChange("phoneNumber", e.target.value)}
               onFocus={() => handleFieldFocus("phoneNumber")}
               onBlur={() => handleFieldBlur("phoneNumber")}
               onTouchStart={() => handleTouchStart("phoneNumber")}
               onTouchEnd={handleTouchEnd}
-              placeholder={tenantData.phoneNumber ? "" : "Contoh: 081234567890"}
-              className={getFieldClassName(tenantData.phoneNumber, "phoneNumber")}
+              placeholder={formData.phoneNumber ? "" : "Contoh: 081234567890"}
+              className={getFieldClassName(formData.phoneNumber, "phoneNumber")}
             />
-            {tenantData.phoneNumber ? (
+            {formData.phoneNumber ? (
               <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Data terisi
@@ -362,16 +367,16 @@ export default function TenantPersonalInfoForm({
               id="birthDate"
               type="date"
               value={
-                tenantData.birthDate ? tenantData.birthDate.split("T")[0] : ""
+                formData.birthDate ? formData.birthDate.split("T")[0] : ""
               }
               onChange={(e) => handleChange("birthDate", e.target.value)}
               onFocus={() => handleFieldFocus("birthDate")}
               onBlur={() => handleFieldBlur("birthDate")}
               onTouchStart={() => handleTouchStart("birthDate")}
               onTouchEnd={handleTouchEnd}
-              className={getFieldClassName(tenantData.birthDate || "", "birthDate")}
+              className={getFieldClassName(formData.birthDate || "", "birthDate")}
             />
-            {tenantData.birthDate ? (
+            {formData.birthDate ? (
               <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Data terisi
@@ -392,14 +397,14 @@ export default function TenantPersonalInfoForm({
             </Label>
             <select
               id="gender"
-              value={tenantData.gender || ""}
+              value={formData.gender || ""}
               onChange={(e) => handleChange("gender", e.target.value)}
               onFocus={() => handleFieldFocus("gender")}
               onBlur={() => handleFieldBlur("gender")}
               onTouchStart={() => handleTouchStart("gender")}
               onTouchEnd={handleTouchEnd}
               className={`w-full border rounded-lg px-3 py-2 transition-all duration-300 cursor-pointer ${
-                getFieldClassName(tenantData.gender || "", "gender")
+                getFieldClassName(formData.gender || "", "gender")
               }`}
             >
               <option value="">Pilih Jenis Kelamin</option>
@@ -407,7 +412,7 @@ export default function TenantPersonalInfoForm({
               <option value="FEMALE">Perempuan</option>
               <option value="OTHER">Lainnya</option>
             </select>
-            {tenantData.gender ? (
+            {formData.gender ? (
               <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Data terisi

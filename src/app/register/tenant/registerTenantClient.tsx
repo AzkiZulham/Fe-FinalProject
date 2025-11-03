@@ -74,7 +74,7 @@ export default function RegisterTenant() {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Sudah punya akun?{" "}
             <Link
-              href="/login"
+              href="/login/tenant"
               className="text-blue-600 hover:text-blue-500 font-medium"
             >
               Masuk di sini

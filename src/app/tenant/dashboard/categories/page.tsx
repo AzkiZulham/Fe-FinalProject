@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash, Search, FolderOpen, Loader2 } from "lucide-react";
 import AddCategoryModal from "./addModal";
 import EditCategoryModal from "./editModal";
+import DeleteCategoryModal from "./deleteModal";
 import ProtectedPage from "@/components/protectedPage";
 
 interface PropertyCategory {
@@ -21,8 +22,9 @@ export default function PropertyCategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [deleteLoading,] = useState<number | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const token =typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -44,22 +46,7 @@ export default function PropertyCategoriesPage() {
     fetchCategories();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this category? This action cannot be undone.")) return;
-    
-    setDeleteLoading(id);
-    try {
-      await axios.delete<PropertyCategory[]>(`${API_URL}/api/properties-categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      await fetchCategories();
-    } catch (error) {
-      console.error("Failed to delete category:", error);
-      alert("Failed to delete category. Please try again.");
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
+
 
   const filteredCategories = categories.filter(cat =>
     cat.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -96,9 +83,10 @@ export default function PropertyCategoriesPage() {
               </div>
             </div>
             
-            <Button 
+            <Button
               onClick={() => setIsAddOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 px-6 py-3 h-auto"
+              disabled={isAddOpen}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 px-6 py-3 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-5 h-5 mr-2" />
               Add New Category
@@ -148,11 +136,10 @@ export default function PropertyCategoriesPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Table Header */}
           <div className="border-b border-gray-200">
-            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700">
-              <div className="col-span-1">ID</div>
-              <div className="col-span-4">Category Name</div>
+            <div className="grid grid-cols-11 gap-4 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700">
+              <div className="col-span-5">Category Name</div>
               <div className="col-span-4">Created Date</div>
-              <div className="col-span-3 text-center">Actions</div>
+              <div className="col-span-2 text-center">Actions</div>
             </div>
           </div>
 
@@ -162,15 +149,9 @@ export default function PropertyCategoriesPage() {
               filteredCategories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="grid grid-cols-12 gap-4 px-6 py-5 hover:bg-blue-50/30 transition-colors duration-200 group"
+                  className="grid grid-cols-11 gap-4 px-6 py-5 hover:bg-blue-50/30 transition-colors duration-200 group"
                 >
-                  <div className="col-span-1 flex items-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold">
-                      {cat.id}
-                    </span>
-                  </div>
-                  
-                  <div className="col-span-4 flex items-center">
+                  <div className="col-span-5 flex items-center">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
                         <FolderOpen className="w-5 h-5 text-blue-600" />
@@ -181,13 +162,13 @@ export default function PropertyCategoriesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="col-span-4 flex items-center">
                     <div className="text-sm text-gray-600">
-                      <div className="font-medium">{new Date(cat.createdAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                      <div className="font-medium">{new Date(cat.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                       })}</div>
                       <div className="text-gray-400">
                         {new Date(cat.createdAt).toLocaleTimeString('en-US', {
@@ -197,8 +178,8 @@ export default function PropertyCategoriesPage() {
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="col-span-3 flex items-center justify-center space-x-2">
+
+                  <div className="col-span-2 flex items-center justify-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -210,11 +191,14 @@ export default function PropertyCategoriesPage() {
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    
+
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDelete(cat.id)}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setIsDeleteOpen(true);
+                      }}
                       disabled={deleteLoading === cat.id}
                       className="transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
                     >
@@ -289,6 +273,13 @@ export default function PropertyCategoriesPage() {
         <EditCategoryModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
+          category={selectedCategory}
+          onSuccess={fetchCategories}
+        />
+
+        <DeleteCategoryModal
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
           category={selectedCategory}
           onSuccess={fetchCategories}
         />

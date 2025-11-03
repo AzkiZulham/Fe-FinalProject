@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface PropertyCategory {
   id: number;
@@ -13,6 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AddCategoryModal({ isOpen, onClose, onSuccess }: any) {
   const [category, setCategory] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -20,6 +22,7 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: any) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await axios.post<PropertyCategory[]>(`${API_URL}/api/properties-categories/add`,
         { category },
@@ -31,6 +34,8 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: any) {
     } catch (err) {
       console.error(err);
       alert("Failed to add category");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,10 +53,19 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: any) {
             required
           />
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
           </div>
         </form>
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface PropertyCategory {
   id: number;
@@ -18,6 +19,7 @@ export default function EditCategoryModal({
   category,
 }: any) {
   const [categoryName, setCategoryName] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -29,6 +31,7 @@ export default function EditCategoryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUpdating(true);
     try {
       await axios.put<PropertyCategory[]>(
         `${API_URL}/api/properties-categories/${category.id}`,
@@ -40,6 +43,8 @@ export default function EditCategoryModal({
     } catch (err) {
       console.error(err);
       alert("Failed to update category");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -57,10 +62,19 @@ export default function EditCategoryModal({
             required
           />
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
           </div>
         </form>
       </div>

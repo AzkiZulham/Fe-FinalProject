@@ -33,6 +33,7 @@ export default function AvailabilityContent() {
   const [selectedRoomTypeId, setSelectedRoomTypeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -100,9 +101,16 @@ export default function AvailabilityContent() {
   const selectedPropertyOption = propertyOptions.find(opt => opt.value === selectedPropertyId) || null;
   const selectedRoomTypeOption = roomTypeOptions.find(opt => opt.value === selectedRoomTypeId) || null;
 
-  const handleViewCalendar = () => {
+  const handleViewCalendar = async () => {
     if (selectedPropertyId && selectedRoomTypeId) {
-      router.push(`/tenant/dashboard/availability/${selectedPropertyId}/${selectedRoomTypeId}`);
+      setIsProcessing(true);
+      try {
+        router.push(`/tenant/dashboard/availability/${selectedPropertyId}/${selectedRoomTypeId}`);
+      } catch (error) {
+        console.error("Navigation error:", error);
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -254,13 +262,22 @@ export default function AvailabilityContent() {
               <div className="pt-4">
                 <button
                   onClick={handleViewCalendar}
-                  disabled={!selectedPropertyId || !selectedRoomTypeId}
+                  disabled={!selectedPropertyId || !selectedRoomTypeId || isProcessing}
                   className="w-full inline-flex items-center justify-center px-4 sm:px-6 py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  View Availability and Pricing Calendar
+                  {isProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      View Availability and Pricing Calendar
+                    </>
+                  )}
                 </button>
               </div>
             </div>

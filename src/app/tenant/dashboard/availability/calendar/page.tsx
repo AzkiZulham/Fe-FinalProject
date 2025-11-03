@@ -67,6 +67,7 @@ function PeakSeasonCalendarContent({
 }) {
   const [events, setEvents] = useState<PeakSeasonEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isApplying, setIsApplying] = useState(false);
   const [view, setView] = useState<View>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -169,6 +170,7 @@ function PeakSeasonCalendarContent({
     if (selectedDates.length === 0) return;
 
     try {
+      setIsApplying(true);
       const startDate = selectedDates[0];
       const endDate = selectedDates[selectedDates.length - 1];
 
@@ -196,6 +198,8 @@ function PeakSeasonCalendarContent({
     } catch (err) {
       console.error("Failed to update pricing:", err);
       alert("Gagal menyimpan perubahan. Silakan coba lagi.");
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -651,13 +655,15 @@ function PeakSeasonCalendarContent({
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <button
                       onClick={handleApplyPrice}
-                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
+                      disabled={isApplying}
+                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Simpan Perubahan
+                      {isApplying ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                      disabled={isApplying}
+                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Batal
                     </button>

@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { UserData } from "./types";
 import { axios } from "@/lib/axios";
@@ -41,11 +41,16 @@ interface Props {
 }
 
 export default function PersonalInfoForm({ userData, setUserData }: Props) {
+  const [formData, setFormData] = useState<UserData>(userData);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setFormData(userData);
+  }, [userData]);
 
   if (!userData) {
     return (
@@ -66,7 +71,7 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
   };
 
   const handleChange = (field: keyof UserData, value: string) => {
-    setUserData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -83,9 +88,9 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
       }
 
       const payload = {
-        ...userData,
-        birthDate: userData.birthDate
-          ? new Date(userData.birthDate).toISOString()
+        ...formData,
+        birthDate: formData.birthDate
+          ? new Date(formData.birthDate).toISOString()
           : null,
       };
 
@@ -98,10 +103,10 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
       setUserData({
         ...userBody.user,
         isEmailVerified: userBody.user.isEmailUpdated ? false : userBody.user.isEmailVerified,
-        isEmailUpdated: userBody.user.isEmailUpdated !== undefined ? userBody.user.isEmailUpdated : userData.email !== userBody.user.email,
+        isEmailUpdated: userBody.user.isEmailUpdated !== undefined ? userBody.user.isEmailUpdated : formData.email !== userBody.user.email,
       });
 
-      const emailChanged = userData.email !== body.user?.email;
+      const emailChanged = formData.email !== body.user?.email;
 
       if (
         emailChanged ||
@@ -262,16 +267,16 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           </Label>
           <Input
             id="userName"
-            value={userData.userName || ""}
+            value={formData.userName || ""}
             onChange={(e) => handleChange("userName", e.target.value)}
             onFocus={() => handleFieldFocus("userName")}
             onBlur={() => handleFieldBlur("userName")}
             onTouchStart={() => handleTouchStart("userName")}
             onTouchEnd={handleTouchEnd}
-            placeholder={userData.userName ? "" : "Masukkan nama lengkap Anda"}
-            className={getFieldClassName(userData.userName, "userName")}
+            placeholder={formData.userName ? "" : "Masukkan nama lengkap Anda"}
+            className={getFieldClassName(formData.userName, "userName")}
           />
-          {userData.userName ? (
+          {formData.userName ? (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
               Data terisi
@@ -293,16 +298,16 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           <Input
             id="email"
             type="email"
-            value={userData.email || ""}
+            value={formData.email || ""}
             onChange={(e) => handleChange("email", e.target.value)}
             onFocus={() => handleFieldFocus("email")}
             onBlur={() => handleFieldBlur("email")}
             onTouchStart={() => handleTouchStart("email")}
             onTouchEnd={handleTouchEnd}
-            placeholder={userData.email ? "" : "Masukkan alamat email aktif"}
-            className={getFieldClassName(userData.email, "email")}
+            placeholder={formData.email ? "" : "Masukkan alamat email aktif"}
+            className={getFieldClassName(formData.email, "email")}
           />
-          {userData.email ? (
+          {formData.email ? (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
               Data terisi
@@ -323,16 +328,16 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           </Label>
           <Input
             id="phoneNumber"
-            value={userData.phoneNumber || ""}
+            value={formData.phoneNumber || ""}
             onChange={(e) => handleChange("phoneNumber", e.target.value)}
             onFocus={() => handleFieldFocus("phoneNumber")}
             onBlur={() => handleFieldBlur("phoneNumber")}
             onTouchStart={() => handleTouchStart("phoneNumber")}
             onTouchEnd={handleTouchEnd}
-            placeholder={userData.phoneNumber ? "" : "Contoh: 081234567890"}
-            className={getFieldClassName(userData.phoneNumber, "phoneNumber")}
+            placeholder={formData.phoneNumber ? "" : "Contoh: 081234567890"}
+            className={getFieldClassName(formData.phoneNumber, "phoneNumber")}
           />
-          {userData.phoneNumber ? (
+          {formData.phoneNumber ? (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
               Data terisi
@@ -354,15 +359,15 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           <Input
             id="birthDate"
             type="date"
-            value={userData.birthDate || ""}
+            value={formData.birthDate || ""}
             onChange={(e) => handleChange("birthDate", e.target.value)}
             onFocus={() => handleFieldFocus("birthDate")}
             onBlur={() => handleFieldBlur("birthDate")}
             onTouchStart={() => handleTouchStart("birthDate")}
             onTouchEnd={handleTouchEnd}
-            className={getFieldClassName(userData.birthDate, "birthDate")}
+            className={getFieldClassName(formData.birthDate, "birthDate")}
           />
-          {userData.birthDate ? (
+          {formData.birthDate ? (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
               Data terisi
@@ -383,14 +388,14 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
           </Label>
           <select
             id="gender"
-            value={userData.gender || ""}
+            value={formData.gender || ""}
             onChange={(e) => handleChange("gender", e.target.value)}
             onFocus={() => handleFieldFocus("gender")}
             onBlur={() => handleFieldBlur("gender")}
             onTouchStart={() => handleTouchStart("gender")}
             onTouchEnd={handleTouchEnd}
             className={`w-full border rounded-lg px-3 py-2 transition-all duration-300 cursor-pointer ${
-              getFieldClassName(userData.gender, "gender")
+              getFieldClassName(formData.gender, "gender")
             }`}
           >
             <option value="">Pilih Jenis Kelamin</option>
@@ -398,7 +403,7 @@ export default function PersonalInfoForm({ userData, setUserData }: Props) {
             <option value="FEMALE">Perempuan</option>
             <option value="OTHER">Lainnya</option>
           </select>
-          {userData.gender ? (
+          {formData.gender ? (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
               Data terisi
